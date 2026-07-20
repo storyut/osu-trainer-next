@@ -13,6 +13,10 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FsBeatmapProcessor", "osu-t
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "key preview", "osu-trainer\submodules\globalKeyboardHook\key preview.csproj", "{8340F8A9-185E-48D4-B544-3809C10CBD62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu-trainer-core", "osu-trainer-core\osu-trainer-core.csproj", "{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "osu-trainer-avalonia", "osu-trainer-avalonia\osu-trainer-avalonia.csproj", "{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +63,30 @@ Global
 		{8340F8A9-185E-48D4-B544-3809C10CBD62}.Release|x64.Build.0 = Release|Any CPU
 		{8340F8A9-185E-48D4-B544-3809C10CBD62}.Release|x86.ActiveCfg = Release|Any CPU
 		{8340F8A9-185E-48D4-B544-3809C10CBD62}.Release|x86.Build.0 = Release|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Debug|x86.Build.0 = Debug|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Release|x64.Build.0 = Release|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF99EEF7-1304-40EF-9625-9A0A9FB3E658}.Release|x86.Build.0 = Release|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Debug|x64.Build.0 = Debug|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Debug|x86.Build.0 = Debug|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Release|x64.ActiveCfg = Release|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Release|x64.Build.0 = Release|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Release|x86.ActiveCfg = Release|Any CPU
+		{9DD694E7-81E2-4446-BBF7-68E2B4D3292B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

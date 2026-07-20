@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="osu_trainer_avalonia.MainWindow"
+        Title="osu-trainer-next (plumbing)" Width="420" Height="440">
+  <StackPanel Margin="12" Spacing="8">
+    <TextBox x:Name="PathTextBox" Watermark="Path to a .osu file" AutomationProperties.AutomationId="PathTextBox" />
+    <Button x:Name="LoadButton" Content="Load" Click="OnLoadClick" AutomationProperties.AutomationId="LoadButton" />
+    <TextBlock x:Name="StatusText" Text="No beatmap loaded." AutomationProperties.AutomationId="StatusText" />
+
+    <TextBlock Text="Rate" />
+    <Slider x:Name="RateSlider" Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged" AutomationProperties.AutomationId="RateSlider" />
+
+    <TextBlock Text="AR" />
+    <Slider x:Name="ArSlider" Minimum="0" Maximum="11" ValueChanged="OnArChanged" AutomationProperties.AutomationId="ArSlider" />
+
+    <TextBlock Text="CS" />
+    <Slider x:Name="CsSlider" Minimum="0" Maximum="11" ValueChanged="OnCsChanged" AutomationProperties.AutomationId="CsSlider" />
+
+    <TextBlock Text="OD" />
+    <Slider x:Name="OdSlider" Minimum="0" Maximum="11" ValueChanged="OnOdChanged" AutomationProperties.AutomationId="OdSlider" />
+
+    <TextBlock Text="HP" />
+    <Slider x:Name="HpSlider" Minimum="0" Maximum="11" ValueChanged="OnHpChanged" AutomationProperties.AutomationId="HpSlider" />
+
+    <TextBlock x:Name="StarRatingText" Text="Star rating: —" AutomationProperties.AutomationId="StarRatingText" />
+    <Button x:Name="GenerateButton" Content="Generate" Click="OnGenerateClick" IsEnabled="False" AutomationProperties.AutomationId="GenerateButton" />
+  </StackPanel>
+</Window>
