@@ -1,10 +1,39 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="osu_trainer_avalonia.App"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
+
+    <Application.Resources>
+        <SolidColorBrush x:Key="WindowBackground">#0F0F14</SolidColorBrush>
+        <SolidColorBrush x:Key="CardBackground">#1C1C24</SolidColorBrush>
+        <SolidColorBrush x:Key="CardBorder">#2A2A35</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentPink">#FF66AA</SolidColorBrush>
+        <SolidColorBrush x:Key="AccentPinkDim">#CC5588</SolidColorBrush>
+        <SolidColorBrush x:Key="TextPrimary">#F0F0F0</SolidColorBrush>
+
+        <CornerRadius x:Key="ControlCornerRadius">10</CornerRadius>
+
+        <SolidColorBrush x:Key="ButtonBackground">#FF66AA</SolidColorBrush>
+        <SolidColorBrush x:Key="ButtonBackgroundPointerOver">#FF80BB</SolidColorBrush>
+        <SolidColorBrush x:Key="ButtonBackgroundPressed">#CC5588</SolidColorBrush>
+        <SolidColorBrush x:Key="ButtonBackgroundDisabled">#3A3A44</SolidColorBrush>
+
+        <SolidColorBrush x:Key="SliderTrackFill">#3A3A44</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderTrackFillPointerOver">#454550</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderTrackFillPressed">#454550</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderTrackValueFill">#FF66AA</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderTrackValueFillPointerOver">#FF80BB</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderTrackValueFillPressed">#FF80BB</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderThumbBackground">#FFFFFF</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver">#FF66AA</SolidColorBrush>
+        <SolidColorBrush x:Key="SliderThumbBackgroundPressed">#FF66AA</SolidColorBrush>
+    </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
+
+        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BoxShadow" Value="0 0 16 0 #80FF66AA" />
+        </Style>
     </Application.Styles>
 </Application>

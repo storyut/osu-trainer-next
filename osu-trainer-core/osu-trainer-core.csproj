@@ -16,6 +16,8 @@
     <PackageReference Include="NAudio.Lame" Version="2.1.0" />
     <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="OsuMemoryDataProvider" Version="0.10.3" />
+    <PackageReference Include="ProcessMemoryDataFinder" Version="0.8.5" />
   </ItemGroup>
 
 </Project>

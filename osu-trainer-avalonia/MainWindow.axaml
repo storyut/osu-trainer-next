@@ -1,28 +1,67 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:osu_trainer_avalonia.Controls"
         x:Class="osu_trainer_avalonia.MainWindow"
-        Title="osu-trainer-next (plumbing)" Width="420" Height="440">
-  <StackPanel Margin="12" Spacing="8">
-    <TextBox x:Name="PathTextBox" Watermark="Path to a .osu file" AutomationProperties.AutomationId="PathTextBox" />
-    <Button x:Name="LoadButton" Content="Load" Click="OnLoadClick" AutomationProperties.AutomationId="LoadButton" />
-    <TextBlock x:Name="StatusText" Text="No beatmap loaded." AutomationProperties.AutomationId="StatusText" />
+        Title="osu-trainer-next"
+        Width="480" Height="620"
+        Background="{DynamicResource WindowBackground}"
+        FontFamily="avares://osu-trainer-avalonia/Assets/Fonts/Quicksand-Variable.ttf#Quicksand">
+  <Grid>
+    <Image x:Name="HeroBackgroundImage" Stretch="UniformToFill" IsVisible="False">
+      <Image.Effect>
+        <BlurEffect Radius="20"/>
+      </Image.Effect>
+    </Image>
+    <Rectangle Fill="Black" Opacity="0.55"/>
 
-    <TextBlock Text="Rate" />
-    <Slider x:Name="RateSlider" Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged" AutomationProperties.AutomationId="RateSlider" />
+    <Border Background="{DynamicResource CardBackground}"
+            BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
+            CornerRadius="16" Margin="24" Padding="20"
+            HorizontalAlignment="Center" VerticalAlignment="Center" Width="420">
+      <StackPanel Spacing="10">
+        <TextBox x:Name="PathTextBox" Watermark="Path to a .osu file (auto-fills when osu! is open)"
+                 AutomationProperties.AutomationId="PathTextBox" />
+        <Button x:Name="LoadButton" Content="Load" Click="OnLoadClick"
+                AutomationProperties.AutomationId="LoadButton" />
+        <TextBlock x:Name="StatusText" Text="No beatmap loaded." Foreground="{DynamicResource TextPrimary}"
+                   AutomationProperties.AutomationId="StatusText" />
 
-    <TextBlock Text="AR" />
-    <Slider x:Name="ArSlider" Minimum="0" Maximum="11" ValueChanged="OnArChanged" AutomationProperties.AutomationId="ArSlider" />
+        <TextBlock Text="Rate" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold"/>
+        <Grid Height="48">
+          <Slider x:Name="RateSlider" Width="380" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                  Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged"
+                  AutomationProperties.AutomationId="RateSlider" />
+          <Border x:Name="RateBubble" Background="{DynamicResource AccentPink}" CornerRadius="10"
+                  Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <TextBlock x:Name="RateBubbleText" Foreground="White" FontWeight="Bold" Text="1.00x"
+                       AutomationProperties.AutomationId="RateBubbleText"/>
+          </Border>
+        </Grid>
 
-    <TextBlock Text="CS" />
-    <Slider x:Name="CsSlider" Minimum="0" Maximum="11" ValueChanged="OnCsChanged" AutomationProperties.AutomationId="CsSlider" />
+        <controls:StarRatingDiamond x:Name="StarRatingDiamond" HorizontalAlignment="Center"
+                                     AutomationProperties.AutomationId="StarRatingDiamond"/>
 
-    <TextBlock Text="OD" />
-    <Slider x:Name="OdSlider" Minimum="0" Maximum="11" ValueChanged="OnOdChanged" AutomationProperties.AutomationId="OdSlider" />
+        <Border Background="{DynamicResource WindowBackground}" CornerRadius="12" Padding="12">
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="AR" Foreground="{DynamicResource TextPrimary}"/>
+            <Slider Grid.Row="1" Grid.Column="0" x:Name="ArSlider" Minimum="0" Maximum="11" Margin="0,4,0,0"
+                    ValueChanged="OnArChanged" AutomationProperties.AutomationId="ArSlider"/>
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="CS" Foreground="{DynamicResource TextPrimary}"/>
+            <Slider Grid.Row="1" Grid.Column="1" x:Name="CsSlider" Minimum="0" Maximum="11" Margin="0,4,0,0"
+                    ValueChanged="OnCsChanged" AutomationProperties.AutomationId="CsSlider"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="OD" Foreground="{DynamicResource TextPrimary}" Margin="0,4,0,0"/>
+            <Slider Grid.Row="3" Grid.Column="0" x:Name="OdSlider" Minimum="0" Maximum="11" Margin="0,4,0,0"
+                    ValueChanged="OnOdChanged" AutomationProperties.AutomationId="OdSlider"/>
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="HP" Foreground="{DynamicResource TextPrimary}" Margin="0,4,0,0"/>
+            <Slider Grid.Row="3" Grid.Column="1" x:Name="HpSlider" Minimum="0" Maximum="11" Margin="0,4,0,0"
+                    ValueChanged="OnHpChanged" AutomationProperties.AutomationId="HpSlider"/>
+          </Grid>
+        </Border>
 
-    <TextBlock Text="HP" />
-    <Slider x:Name="HpSlider" Minimum="0" Maximum="11" ValueChanged="OnHpChanged" AutomationProperties.AutomationId="HpSlider" />
-
-    <TextBlock x:Name="StarRatingText" Text="Star rating: —" AutomationProperties.AutomationId="StarRatingText" />
-    <Button x:Name="GenerateButton" Content="Generate" Click="OnGenerateClick" IsEnabled="False" AutomationProperties.AutomationId="GenerateButton" />
-  </StackPanel>
+        <Button x:Name="GenerateButton" Content="Generate" Click="OnGenerateClick" IsEnabled="False"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                AutomationProperties.AutomationId="GenerateButton" />
+      </StackPanel>
+    </Border>
+  </Grid>
 </Window>

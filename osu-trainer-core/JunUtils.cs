@@ -4,7 +4,7 @@ using System.IO;
 
 namespace OsuTrainerCore
 {
-    internal static class JunUtils
+    public static class JunUtils
     {
         public static string SongsFolder { get; set; } = "";
 

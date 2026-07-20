@@ -22,6 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets/Fonts/Quicksand-Variable.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\osu-trainer\binaries\oppai.exe">
       <Link>binaries\oppai.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
