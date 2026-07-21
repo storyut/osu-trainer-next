@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:osu_trainer_avalonia.Controls"
+        xmlns:lucideAvalonia="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
         x:Class="osu_trainer_avalonia.MainWindow"
         Title="osu-trainer-next"
-        Width="480" SizeToContent="Height" CanResize="False"
+        Width="400" SizeToContent="Height" CanResize="False"
         SystemDecorations="None"
         Background="{DynamicResource WindowBackground}"
         FontFamily="avares://osu-trainer-avalonia/Assets/Fonts/Quicksand-Variable.ttf#Quicksand">
@@ -26,25 +27,29 @@
         <Grid ColumnDefinitions="*,Auto,Auto">
           <TextBlock Grid.Column="0" Text="osu!trainer" Foreground="{DynamicResource TextPrimary}"
                      FontWeight="Bold" VerticalAlignment="Center"/>
-          <Button Grid.Column="1" x:Name="MinimizeButton" Content="—" Click="OnMinimizeClick"
+          <Button Grid.Column="1" x:Name="MinimizeButton" Click="OnMinimizeClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
-                  Padding="10,2" MinHeight="0" AutomationProperties.AutomationId="MinimizeButton"/>
-          <Button Grid.Column="2" x:Name="CloseButton" Content="✕" Click="OnCloseClick"
+                  Padding="10,2" MinHeight="0" AutomationProperties.AutomationId="MinimizeButton">
+            <lucideAvalonia:Lucide Icon="Minus" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+          </Button>
+          <Button Grid.Column="2" x:Name="CloseButton" Click="OnCloseClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
-                  Padding="10,2" MinHeight="0" AutomationProperties.AutomationId="CloseButton"/>
+                  Padding="10,2" MinHeight="0" AutomationProperties.AutomationId="CloseButton">
+            <lucideAvalonia:Lucide Icon="X" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+          </Button>
         </Grid>
       </Border>
 
-      <StackPanel Margin="16" Spacing="12">
+      <StackPanel Margin="12" Spacing="8">
         <!-- 2. Song display over the dimmed background -->
         <Grid ColumnDefinitions="*,Auto">
           <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
             <TextBlock x:Name="SongTitle" Text="No beatmap loaded." Foreground="{DynamicResource TextPrimary}"
-                       FontSize="18" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                       FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
                        AutomationProperties.AutomationId="SongTitle"/>
-            <TextBlock x:Name="SongArtist" Text="" Foreground="#B0B0B8" FontSize="13"
+            <TextBlock x:Name="SongArtist" Text="" Foreground="#B0B0B8" FontSize="{DynamicResource FontSizeBody}"
                        TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongArtist"/>
-            <TextBlock x:Name="SongDifficulty" Text="" Foreground="{DynamicResource AccentPink}" FontSize="13"
+            <TextBlock x:Name="SongDifficulty" Text="" Foreground="{DynamicResource AccentPink}" FontSize="{DynamicResource FontSizeBody}"
                        TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongDifficulty"/>
           </StackPanel>
           <controls:StarRatingDiamond Grid.Column="1" x:Name="StarRatingDiamond" VerticalAlignment="Center"
@@ -59,20 +64,20 @@
           <Button Grid.Column="1" x:Name="LoadButton" Content="Load" Click="OnLoadClick"
                   AutomationProperties.AutomationId="LoadButton"/>
         </Grid>
-        <TextBlock x:Name="StatusText" Text="No beatmap loaded." Foreground="#B0B0B8" FontSize="12"
+        <TextBlock x:Name="StatusText" Text="No beatmap loaded." Foreground="#B0B0B8" FontSize="{DynamicResource FontSizeCaption}"
                    AutomationProperties.AutomationId="StatusText"/>
 
         <!-- 3. Hero rate card -->
         <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
-                BorderThickness="1" CornerRadius="14" Padding="16">
+                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
           <StackPanel Spacing="8">
-            <TextBlock Text="Rate" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold"/>
-            <Grid Height="48">
+            <TextBlock Text="Rate" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold" FontSize="{DynamicResource FontSizeHeader}"/>
+            <Grid Height="40">
               <Slider x:Name="RateSlider" Width="400" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                       Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged"
                       AutomationProperties.AutomationId="RateSlider"/>
               <Border x:Name="RateBubble" Background="{DynamicResource AccentPink}" CornerRadius="10"
-                      Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Top">
+                      Padding="6,3" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <TextBlock x:Name="RateBubbleText" Foreground="White" FontWeight="Bold" Text="1.00x"
                            AutomationProperties.AutomationId="RateBubbleText"/>
               </Border>
@@ -84,16 +89,21 @@
                          AutomationProperties.AutomationId="BpmText"/>
               <TextBlock Grid.Column="1" x:Name="BpmRangeText" Text="" Foreground="#B0B0B8" Margin="8,0,0,0"
                          VerticalAlignment="Center" AutomationProperties.AutomationId="BpmRangeText"/>
-              <ToggleButton Grid.Column="3" x:Name="BpmLockButton" Content="🔒 BPM" Click="OnBpmLockClick"
+              <ToggleButton Grid.Column="3" x:Name="BpmLockButton" Click="OnBpmLockClick"
                             Background="Transparent" BorderBrush="{DynamicResource CardBorder}"
-                            Padding="8,3" MinHeight="0" AutomationProperties.AutomationId="BpmLockButton"/>
+                            Padding="8,3" MinHeight="0" AutomationProperties.AutomationId="BpmLockButton">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                  <lucideAvalonia:Lucide Icon="Lock" Width="12" Height="12" StrokeBrush="{DynamicResource TextPrimary}"/>
+                  <TextBlock Text="BPM" Foreground="{DynamicResource TextPrimary}"/>
+                </StackPanel>
+              </ToggleButton>
             </Grid>
           </StackPanel>
         </Border>
 
         <!-- 4. Difficulty card -->
         <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
-                BorderThickness="1" CornerRadius="14" Padding="16">
+                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
           <StackPanel Spacing="10">
             <controls:DifficultyRow x:Name="HpRow" Label="HP" Minimum="0" Maximum="10"
                                     AutomationProperties.AutomationId="HpRow"/>
@@ -126,16 +136,21 @@
 
         <!-- 5. Profiles row + More expander -->
         <Grid ColumnDefinitions="*,Auto">
-          <StackPanel Grid.Column="0" x:Name="ProfilesPanel" Orientation="Horizontal" Spacing="6"/>
-          <Button Grid.Column="1" x:Name="MoreButton" Content="▶ More" Click="OnToggleExtras"
+          <StackPanel Grid.Column="0" x:Name="ProfilesPanel" Orientation="Horizontal" Spacing="4"/>
+          <Button Grid.Column="1" x:Name="MoreButton" Click="OnToggleExtras"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
                   BorderBrush="{DynamicResource CardBorder}"
-                  AutomationProperties.AutomationId="MoreButton"/>
+                  AutomationProperties.AutomationId="MoreButton">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <lucideAvalonia:Lucide x:Name="MoreButtonIcon" Icon="ChevronRight" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+              <TextBlock x:Name="MoreButtonText" Text="More" Foreground="{DynamicResource TextPrimary}"/>
+            </StackPanel>
+          </Button>
         </Grid>
 
         <!-- 6. Extras (collapsible) -->
         <Border x:Name="ExtrasPanel" IsVisible="False" Background="{DynamicResource CardBackground}"
-                BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="14" Padding="16">
+                BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
           <StackPanel Spacing="8">
             <CheckBox x:Name="NoSpinnersCheck" Content="No Spinners" Click="OnNoSpinnersClick"
                       AutomationProperties.AutomationId="NoSpinnersCheck"/>
@@ -151,17 +166,27 @@
 
         <!-- 7. Bottom bar -->
         <Grid ColumnDefinitions="Auto,*,Auto">
-          <Button Grid.Column="0" x:Name="ResetButton" Content="Reset" Click="OnResetClick"
+          <Button Grid.Column="0" x:Name="ResetButton" Click="OnResetClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
                   BorderBrush="{DynamicResource CardBorder}"
-                  AutomationProperties.AutomationId="ResetButton"/>
+                  AutomationProperties.AutomationId="ResetButton">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <lucideAvalonia:Lucide Icon="RotateCcw" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+              <TextBlock Text="Reset" Foreground="{DynamicResource TextPrimary}"/>
+            </StackPanel>
+          </Button>
           <Button Grid.Column="1" x:Name="GenerateButton" Content="Generate" Click="OnGenerateClick"
                   IsEnabled="False" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                   Margin="10,0" AutomationProperties.AutomationId="GenerateButton"/>
-          <Button Grid.Column="2" x:Name="SongsFolderButton" Content="Songs Folder" Click="OnSongsFolderClick"
+          <Button Grid.Column="2" x:Name="SongsFolderButton" Click="OnSongsFolderClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
                   BorderBrush="{DynamicResource CardBorder}"
-                  AutomationProperties.AutomationId="SongsFolderButton"/>
+                  AutomationProperties.AutomationId="SongsFolderButton">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <lucideAvalonia:Lucide Icon="Folder" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+              <TextBlock Text="Songs Folder" Foreground="{DynamicResource TextPrimary}"/>
+            </StackPanel>
+          </Button>
         </Grid>
       </StackPanel>
     </StackPanel>

@@ -10,6 +10,8 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using LucideAvalonia;
+using LucideAvalonia.Enum;
 using osu_trainer_avalonia.Controls;
 using OsuTrainerCore;
 
@@ -156,7 +158,8 @@ namespace osu_trainer_avalonia
         {
             bool show = !ExtrasPanel.IsVisible;
             ExtrasPanel.IsVisible = show;
-            MoreButton.Content = show ? "▼ Less" : "▶ More";
+            MoreButtonIcon.Icon = show ? LucideIconNames.ChevronDown : LucideIconNames.ChevronRight;
+            MoreButtonText.Text = show ? "Less" : "More";
         }
 
         private void OnNoSpinnersClick(object? sender, RoutedEventArgs e)
@@ -188,10 +191,15 @@ namespace osu_trainer_avalonia
 
                 var loadButton = new Button
                 {
-                    Content = editor.UserProfiles[idx].Name,
-                    Width = 64,
-                    FontSize = 11,
-                    Padding = new Thickness(4, 3),
+                    Content = new TextBlock
+                    {
+                        Text = editor.UserProfiles[idx].Name,
+                        TextTrimming = TextTrimming.CharacterEllipsis,
+                        TextAlignment = Avalonia.Media.TextAlignment.Center
+                    },
+                    Width = 48,
+                    FontSize = 10,
+                    Padding = new Thickness(2, 3),
                     MinHeight = 0,
                     HorizontalContentAlignment = HorizontalAlignment.Center,
                     Background = Brushes.Transparent,
@@ -225,15 +233,20 @@ namespace osu_trainer_avalonia
                     if (ke.Key != Key.Enter) return;
                     editor.RenameProfile(idx, string.IsNullOrWhiteSpace(renameBox.Text) ? editor.UserProfiles[idx].Name : renameBox.Text.Trim());
                     editor.SaveProfilesToDisk();
-                    profileButtons[idx].Content = editor.UserProfiles[idx].Name;
+                    ((TextBlock)profileButtons[idx].Content!).Text = editor.UserProfiles[idx].Name;
                     flyout.Hide();
                 };
 
                 var menuButton = new Button
                 {
-                    Content = "▾",
-                    FontSize = 11,
-                    Padding = new Thickness(4, 3),
+                    Content = new Lucide
+                    {
+                        Icon = LucideIconNames.ChevronDown,
+                        Width = 12,
+                        Height = 12,
+                        StrokeBrush = Brushes.White
+                    },
+                    Padding = new Thickness(2, 3),
                     MinHeight = 0,
                     Background = Brushes.Transparent,
                     Flyout = flyout
