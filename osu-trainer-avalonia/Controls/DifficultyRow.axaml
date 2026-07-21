@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="osu_trainer_avalonia.Controls.DifficultyRow">
+  <Grid ColumnDefinitions="34,54,*,Auto,Auto" VerticalAlignment="Center">
+    <TextBlock x:Name="LabelText" Grid.Column="0" Text="AR"
+               Foreground="{DynamicResource TextPrimary}" FontWeight="Bold"
+               VerticalAlignment="Center"/>
+    <TextBox x:Name="ValueBox" Grid.Column="1" Text="0" Margin="0,0,8,0"
+             Padding="6,3" MinHeight="0" TextAlignment="Center"
+             VerticalContentAlignment="Center"/>
+    <Slider x:Name="ValueSlider" Grid.Column="2" Minimum="0" Maximum="11"
+            VerticalAlignment="Center"/>
+    <ToggleButton x:Name="LockButton" Grid.Column="3" Content="🔒" Margin="8,0,0,0"
+                  Padding="6,2" MinHeight="0" Background="Transparent"
+                  BorderBrush="{DynamicResource CardBorder}"
+                  ToolTip.Tip="Lock this value across map switches"/>
+    <ContentPresenter x:Name="TrailingHost" Grid.Column="4" Margin="8,0,0,0"
+                      VerticalAlignment="Center" Content="{Binding TrailingContent, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+  </Grid>
+</UserControl>

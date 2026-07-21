@@ -701,7 +701,7 @@ namespace OsuTrainerCore
             ControlsModified?.Invoke(this, EventArgs.Empty);
             BeatmapModified?.Invoke(this, EventArgs.Empty);
         }
-        internal void ToggleHrEmulation()
+        public void ToggleHrEmulation()
         {
             ForceHardrockCirclesize = !ForceHardrockCirclesize;
             CsIsLocked = false;
@@ -1086,7 +1086,7 @@ namespace OsuTrainerCore
             ControlsModified?.Invoke(this, EventArgs.Empty);
         }
 
-        internal void ToggleHighQualityMp3s()
+        public void ToggleHighQualityMp3s()
         {
             HighQualityMp3s = !HighQualityMp3s;
             ControlsModified?.Invoke(this, EventArgs.Empty);

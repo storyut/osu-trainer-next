@@ -35,5 +35,16 @@
         <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="BoxShadow" Value="0 0 16 0 #80FF66AA" />
         </Style>
+
+        <!-- Fluent's checkbox/toggle "checked" fill defaults to the system purple accent,
+             which clashes with the pink theme; repoint both at AccentPink. -->
+        <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+            <Setter Property="Background" Value="{DynamicResource AccentPink}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentPink}" />
+        </Style>
+        <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentPink}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentPink}" />
+        </Style>
     </Application.Styles>
 </Application>
