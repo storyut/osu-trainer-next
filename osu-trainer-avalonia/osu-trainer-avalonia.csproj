@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,9 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets/Fonts/Quicksand-Variable.ttf" />
+    <AvaloniaResource Include="..\osu-trainer\resources\oof.ico">
+      <Link>Assets/oof.ico</Link>
+    </AvaloniaResource>
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:osu_trainer_avalonia.Controls"
+        x:Class="osu_trainer_avalonia.QuickSettingsWindow"
+        Title="osu!trainer — quick settings"
+        SizeToContent="WidthAndHeight" CanResize="False"
+        SystemDecorations="None" ShowInTaskbar="False" Topmost="True"
+        Background="{DynamicResource WindowBackground}"
+        FontFamily="avares://osu-trainer-avalonia/Assets/Fonts/Quicksand-Variable.ttf#Quicksand">
+  <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
+          BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12" Width="260">
+    <StackPanel Spacing="10">
+      <TextBlock Text="Rate" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold" FontSize="{DynamicResource FontSizeHeader}"/>
+      <Grid Height="40">
+        <Slider x:Name="RateSlider" Width="236" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged"
+                AutomationProperties.AutomationId="QuickRateSlider"/>
+        <Border x:Name="RateBubble" Background="{DynamicResource AccentPink}" CornerRadius="10"
+                Padding="6,3" HorizontalAlignment="Left" VerticalAlignment="Top">
+          <TextBlock x:Name="RateBubbleText" Foreground="White" FontWeight="Bold" Text="1.00x"
+                     AutomationProperties.AutomationId="QuickRateBubbleText"/>
+        </Border>
+      </Grid>
+      <TextBlock x:Name="BpmText" Text="—" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold"
+                 AutomationProperties.AutomationId="QuickBpmText"/>
+
+      <controls:DifficultyRow x:Name="HpRow" Label="HP" Minimum="0" Maximum="10"/>
+      <controls:DifficultyRow x:Name="CsRow" Label="CS" Minimum="0" Maximum="10"/>
+      <controls:DifficultyRow x:Name="ArRow" Label="AR" Minimum="0" Maximum="11"/>
+      <controls:DifficultyRow x:Name="OdRow" Label="OD" Minimum="0" Maximum="11"/>
+    </StackPanel>
+  </Border>
+</Window>

@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -10,9 +12,12 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using LucideAvalonia;
 using LucideAvalonia.Enum;
 using osu_trainer_avalonia.Controls;
+using osu_trainer_avalonia.Interop;
+using osu_trainer_avalonia.Services;
 using OsuTrainerCore;
 
 namespace osu_trainer_avalonia
@@ -21,8 +26,15 @@ namespace osu_trainer_avalonia
     {
         private readonly BeatmapEditor editor;
         private readonly LiveMapWatcher liveMapWatcher;
+        private readonly SettingsStore settingsStore;
+        private readonly GlobalHotKey globalHotKey;
         private readonly Button[] profileButtons = new Button[4];
         private bool updatingFromModel;
+        private AppSettings? pendingPersistedSettings;
+        private string? pendingUpdateUrl;
+
+        /// <summary>Shared with <see cref="QuickSettingsWindow"/> so both windows drive the same model.</summary>
+        public BeatmapEditor Editor => editor;
 
         public MainWindow()
         {
@@ -34,12 +46,25 @@ namespace osu_trainer_avalonia
             editor.BeatmapModified += (_, _) => RefreshControlsFromModel();
             editor.ControlsModified += (_, _) => RefreshControlsFromModel();
             editor.StateChanged += (_, _) => RefreshState();
+            editor.BeatmapSwitched += OnFirstBeatmapSwitchedApplyPersistedSettings;
 
             WireDifficultyRows();
             BuildProfileSlots();
 
             UpdateRateBubble(RateSlider.Value);
             RefreshControlsFromModel();
+
+            settingsStore = new SettingsStore(msg => StatusText.Text = msg);
+            var loadedSettings = settingsStore.Load();
+            ApplyPersistedSettingsPreLoad(loadedSettings);
+            pendingPersistedSettings = loadedSettings;
+
+            if (loadedSettings.UpdatesCheckEnabled)
+                _ = CheckForUpdatesAsync();
+
+            globalHotKey = new GlobalHotKey();
+            globalHotKey.RateNudgeRequested += OnRateNudgeRequested;
+            globalHotKey.Start();
 
             liveMapWatcher = new LiveMapWatcher(host);
             liveMapWatcher.SongsFolderDetected += (_, folder) => OsuTrainerCore.JunUtils.SongsFolder = folder;
@@ -51,6 +76,26 @@ namespace osu_trainer_avalonia
             liveMapWatcher.Start();
 
             Closed += (_, _) => liveMapWatcher.Stop();
+            Closing += (_, e) =>
+            {
+                SaveCurrentSettings();
+                e.Cancel = true;
+                Hide();
+            };
+        }
+
+        /// <summary>Saves settings and releases the global hotkey. Called once, from the tray "Quit" path, before the process actually exits.</summary>
+        public void PrepareForShutdown()
+        {
+            SaveCurrentSettings();
+            globalHotKey.Dispose();
+        }
+
+        public void RestoreFromTray()
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
         }
 
         // ---- window chrome ----------------------------------------------------
@@ -119,6 +164,15 @@ namespace osu_trainer_avalonia
             editor.ToggleBpmLock();
         }
 
+        /// <summary>Ctrl+Alt+Up/Down, delivered from <see cref="GlobalHotKey"/> on the UI thread.
+        /// Drives the slider so it goes through the exact same path a mouse drag does.</summary>
+        private void OnRateNudgeRequested(bool increase)
+        {
+            decimal delta = increase ? 0.05M : -0.05M;
+            decimal newRate = Math.Clamp(editor.BpmRate + delta, 0.5M, 2.0M);
+            RateSlider.Value = (double)newRate;
+        }
+
         // ---- difficulty rows --------------------------------------------------
 
         private void WireDifficultyRows()
@@ -179,6 +233,132 @@ namespace osu_trainer_avalonia
             if (updatingFromModel) return;
             editor.ToggleHighQualityMp3s();
         }
+
+        // ---- settings persistence -----------------------------------------------
+        // BeatmapEditor.SetHP/SetCS/SetAR/SetOD only act while State == READY, and the
+        // Toggle*Lock methods dereference NewBeatmap unconditionally — both assume a
+        // beatmap is already loaded, same as the existing LoadProfile(int) does. So the
+        // fields that only matter once a beatmap exists (the four difficulty locks, BPM
+        // lock, HR emulation) are applied once, on the first BeatmapSwitched after
+        // construction; everything else (rate, Scale AR/OD, pitch/spinners/mp3 toggles) is
+        // safe to apply immediately since those setters tolerate the NOT_READY state.
+
+        private void ApplyPersistedSettingsPreLoad(AppSettings s)
+        {
+            editor.BpmRate = s.BpmRate;
+            editor.SetScaleAR(s.ScaleAR);
+            editor.SetScaleOD(s.ScaleOD);
+            if (s.ChangePitch) editor.ToggleChangePitchSetting();
+            if (s.NoSpinners) editor.ToggleNoSpinners();
+            if (s.HighQualityMp3s) editor.ToggleHighQualityMp3s();
+            UpdatesCheck.IsChecked = s.UpdatesCheckEnabled;
+
+            // No beatmap is loaded yet, so RefreshControlsFromModel() (which reads
+            // editor.NewBeatmap) can't run — but the rate slider/bubble aren't tied to a
+            // beatmap and should reflect the restored rate immediately, not just once one loads.
+            updatingFromModel = true;
+            RateSlider.Value = (double)s.BpmRate;
+            UpdateRateBubble((double)s.BpmRate);
+            updatingFromModel = false;
+        }
+
+        private void OnFirstBeatmapSwitchedApplyPersistedSettings(object? sender, EventArgs e)
+        {
+            if (pendingPersistedSettings == null || editor.State != EditorState.READY)
+                return;
+
+            var s = pendingPersistedSettings;
+            pendingPersistedSettings = null;
+            editor.BeatmapSwitched -= OnFirstBeatmapSwitchedApplyPersistedSettings;
+
+            // HR emulation and a CS lock are mutually exclusive in BeatmapEditor already
+            // (each Toggle clears the other), so only one branch here ever applies.
+            if (s.ForceHardrockCirclesize)
+            {
+                editor.ToggleHrEmulation();
+            }
+            else if (s.CsIsLocked)
+            {
+                editor.ToggleCsLock();
+                editor.SetCS(s.LockedCs);
+            }
+
+            if (s.HpIsLocked)
+            {
+                editor.ToggleHpLock();
+                editor.SetHP(s.LockedHp);
+            }
+
+            if (s.ArIsLocked)
+            {
+                editor.ToggleArLock();
+                editor.SetAR(s.LockedAr);
+            }
+
+            if (s.OdIsLocked)
+            {
+                editor.ToggleOdLock();
+                editor.SetOD(s.LockedOd);
+            }
+
+            if (s.BpmIsLocked)
+            {
+                editor.ToggleBpmLock();
+                editor.SetBpm(s.LockedBpm);
+            }
+        }
+
+        private void SaveCurrentSettings()
+        {
+            var s = new AppSettings
+            {
+                BpmRate = editor.BpmRate,
+                BpmIsLocked = editor.BpmIsLocked,
+                LockedBpm = editor.BpmIsLocked ? (int)editor.GetNewBpmData().Item1 : 200,
+                HpIsLocked = editor.HpIsLocked,
+                LockedHp = editor.NewBeatmap?.HPDrainRate ?? 0M,
+                CsIsLocked = editor.CsIsLocked,
+                LockedCs = editor.NewBeatmap?.CircleSize ?? 0M,
+                ArIsLocked = editor.ArIsLocked,
+                LockedAr = editor.NewBeatmap?.ApproachRate ?? 0M,
+                OdIsLocked = editor.OdIsLocked,
+                LockedOd = editor.NewBeatmap?.OverallDifficulty ?? 0M,
+                ScaleAR = editor.ScaleAR,
+                ScaleOD = editor.ScaleOD,
+                ForceHardrockCirclesize = editor.ForceHardrockCirclesize,
+                ChangePitch = editor.ChangePitch,
+                NoSpinners = editor.NoSpinners,
+                HighQualityMp3s = editor.HighQualityMp3s,
+                UpdatesCheckEnabled = UpdatesCheck.IsChecked == true
+            };
+            settingsStore.Save(s);
+        }
+
+        // ---- update checker -------------------------------------------------------
+
+        private async Task CheckForUpdatesAsync()
+        {
+            var info = await UpdateChecker.CheckForUpdateAsync();
+            if (info == null)
+                return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                pendingUpdateUrl = info.HtmlUrl;
+                UpdateRowText.Text = $"Update available: {info.Version}";
+                UpdateRow.IsVisible = true;
+            });
+        }
+
+        private void OnUpdatesCheckClick(object? sender, RoutedEventArgs e) => SaveCurrentSettings();
+
+        private void OnUpdateRowClick(object? sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(pendingUpdateUrl)) return;
+            Process.Start(new ProcessStartInfo(pendingUpdateUrl) { UseShellExecute = true });
+        }
+
+        private void OnDismissUpdateRowClick(object? sender, RoutedEventArgs e) => UpdateRow.IsVisible = false;
 
         // ---- profiles ---------------------------------------------------------
 
