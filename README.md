@@ -13,7 +13,12 @@ https://github.com/FunOrange/osu-trainer/releases/latest
 
 Special thanks to [Craftplacer](https://github.com/Craftplacer) for making the UI really nice and pretty
 
-## Licenses
+## License
+This project is licensed under the [GNU General Public License v3.0](LICENSE), required
+by its use of [OsuMemoryDataProvider](https://github.com/Piotrekol/ProcessMemoryDataFinder)
+(GPL-3.0), which it links directly.
+
+## Third-party licenses
 This project uses the following projects:
 - [Font Awesome](https://fontawesome.com/), [licensed under the CC BY 4.0 License](https://creativecommons.org/licenses/by/4.0/)
 - [Comfortaa](https://fonts.google.com/specimen/Comfortaa), [licensed under the Open Font License](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL)
