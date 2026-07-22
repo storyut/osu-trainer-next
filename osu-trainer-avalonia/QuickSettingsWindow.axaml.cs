@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using osu_trainer_avalonia.Controls;
+using osu_trainer_avalonia.Interop;
 using OsuTrainerCore;
 
 namespace osu_trainer_avalonia
@@ -38,6 +39,7 @@ namespace osu_trainer_avalonia
             CsRow.LockToggled += (_, _) => editor.ToggleCsLock();
             ArRow.LockToggled += (_, _) => editor.ToggleArLock();
             OdRow.LockToggled += (_, _) => editor.ToggleOdLock();
+            GenerateButton.Click += (_, _) => editor.GenerateBeatmap();
 
             editor.BeatmapSwitched += (_, _) => RefreshFromModel();
             editor.BeatmapModified += (_, _) => RefreshFromModel();
@@ -53,14 +55,20 @@ namespace osu_trainer_avalonia
             Show();
             Activate();
 
-            var area = Screens.Primary?.WorkingArea;
+            var cursor = CursorInterop.GetCursorScreenPosition();
+            var screen = Screens.ScreenFromPoint(cursor) ?? Screens.Primary;
+            var area = screen?.WorkingArea;
             if (area == null) return;
 
             double w = Bounds.Width > 0 ? Bounds.Width : 284;
             double h = Bounds.Height > 0 ? Bounds.Height : 340;
-            Position = new PixelPoint(
-                area.Value.Right - (int)w - 12,
-                area.Value.Bottom - (int)h - 12);
+
+            int x = cursor.X - (int)w - 12;
+            int y = cursor.Y - (int)h - 12;
+            x = Math.Clamp(x, area.Value.X, area.Value.X + area.Value.Width - (int)w);
+            y = Math.Clamp(y, area.Value.Y, area.Value.Y + area.Value.Height - (int)h);
+
+            Position = new PixelPoint(x, y);
         }
 
         private void OnRateChanged(object? sender, RangeBaseValueChangedEventArgs e)
@@ -82,7 +90,11 @@ namespace osu_trainer_avalonia
         private void RefreshFromModel()
         {
             if (editor.State != EditorState.READY || editor.NewBeatmap == null)
+            {
+                HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = false;
+                GenerateButton.IsEnabled = false;
                 return;
+            }
 
             updatingFromModel = true;
 
@@ -102,6 +114,9 @@ namespace osu_trainer_avalonia
             var (origBpm, _, _) = editor.GetOriginalBpmData();
             var (newBpm, _, _) = editor.GetNewBpmData();
             BpmText.Text = DifficultyMath.FormatBpm(origBpm, newBpm);
+
+            HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = true;
+            GenerateButton.IsEnabled = editor.State == EditorState.READY;
 
             updatingFromModel = false;
         }

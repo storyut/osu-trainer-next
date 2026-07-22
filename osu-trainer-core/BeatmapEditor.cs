@@ -517,7 +517,8 @@ namespace OsuTrainerCore
             if (ArIsLocked)
             {
                 ScaleAR = false;
-                lockedAR = NewBeatmap.ApproachRate;
+                if (NewBeatmap != null)
+                    lockedAR = NewBeatmap.ApproachRate;
             }
             else
             {
@@ -580,9 +581,10 @@ namespace OsuTrainerCore
             HpIsLocked = !HpIsLocked;
             if (HpIsLocked)
             {
-                lockedHP = NewBeatmap.HPDrainRate;
+                if (NewBeatmap != null)
+                    lockedHP = NewBeatmap.HPDrainRate;
             }
-            else
+            else if (NewBeatmap != null)
             {
                 NewBeatmap.HPDrainRate = OriginalBeatmap.HPDrainRate;
                 BeatmapModified?.Invoke(this, EventArgs.Empty);
@@ -596,9 +598,10 @@ namespace OsuTrainerCore
             ForceHardrockCirclesize = false;
             if (CsIsLocked)
             {
-                lockedCS = NewBeatmap.CircleSize;
+                if (NewBeatmap != null)
+                    lockedCS = NewBeatmap.CircleSize;
             }
-            else
+            else if (NewBeatmap != null)
             {
                 NewBeatmap.CircleSize = OriginalBeatmap.CircleSize;
                 BeatmapModified?.Invoke(this, EventArgs.Empty);
@@ -624,7 +627,8 @@ namespace OsuTrainerCore
             if (OdIsLocked)
             {
                 ScaleOD = false;
-                lockedOD = NewBeatmap.OverallDifficulty;
+                if (NewBeatmap != null)
+                    lockedOD = NewBeatmap.OverallDifficulty;
             }
             else
             {
@@ -705,13 +709,16 @@ namespace OsuTrainerCore
         {
             ForceHardrockCirclesize = !ForceHardrockCirclesize;
             CsIsLocked = false;
-            if (ForceHardrockCirclesize)
+            if (NewBeatmap != null)
             {
-                NewBeatmap.CircleSize = OriginalBeatmap.CircleSize * 1.3M;
-            }
-            else
-            {
-                NewBeatmap.CircleSize = OriginalBeatmap.CircleSize;
+                if (ForceHardrockCirclesize)
+                {
+                    NewBeatmap.CircleSize = OriginalBeatmap.CircleSize * 1.3M;
+                }
+                else
+                {
+                    NewBeatmap.CircleSize = OriginalBeatmap.CircleSize;
+                }
             }
             RequestDiffCalc();
             ControlsModified?.Invoke(this, EventArgs.Empty);

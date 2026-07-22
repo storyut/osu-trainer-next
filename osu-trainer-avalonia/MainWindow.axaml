@@ -88,7 +88,7 @@
           <StackPanel Spacing="8">
             <TextBlock Text="Rate" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold" FontSize="{DynamicResource FontSizeHeader}"/>
             <Grid Height="40">
-              <Slider x:Name="RateSlider" Width="400" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+              <Slider x:Name="RateSlider" Width="352" HorizontalAlignment="Left" VerticalAlignment="Bottom"
                       Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged"
                       AutomationProperties.AutomationId="RateSlider"/>
               <Border x:Name="RateBubble" Background="{DynamicResource AccentPink}" CornerRadius="10"

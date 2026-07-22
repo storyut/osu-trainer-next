@@ -28,6 +28,10 @@
       <controls:DifficultyRow x:Name="CsRow" Label="CS" Minimum="0" Maximum="10"/>
       <controls:DifficultyRow x:Name="ArRow" Label="AR" Minimum="0" Maximum="11"/>
       <controls:DifficultyRow x:Name="OdRow" Label="OD" Minimum="0" Maximum="11"/>
+
+      <Button x:Name="GenerateButton" Content="Generate"
+              IsEnabled="False" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+              AutomationProperties.AutomationId="QuickGenerateButton"/>
     </StackPanel>
   </Border>
 </Window>

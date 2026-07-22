@@ -151,7 +151,7 @@ namespace osu_trainer_avalonia
 
         private void UpdateRateBubble(double value)
         {
-            const double min = 0.5, max = 2.0, trackWidth = 400, bubbleWidth = 48;
+            const double min = 0.5, max = 2.0, trackWidth = 352, bubbleWidth = 48;
             double fraction = (value - min) / (max - min);
             double left = fraction * (trackWidth - bubbleWidth);
             RateBubble.Margin = new Thickness(left, -28, 0, 0);
@@ -460,6 +460,7 @@ namespace osu_trainer_avalonia
                 SongDifficulty.Text = string.Empty;
                 StatusText.Text = reason;
                 GenerateButton.IsEnabled = false;
+                HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = false;
                 return;
             }
 
@@ -501,6 +502,7 @@ namespace osu_trainer_avalonia
             StatusText.Text = "Loaded.";
 
             GenerateButton.IsEnabled = editor.State == EditorState.READY;
+            HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = true;
 
             updatingFromModel = false;
         }
