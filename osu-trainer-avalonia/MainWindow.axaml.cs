@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Automation;
@@ -42,7 +45,7 @@ namespace osu_trainer_avalonia
 
             var host = new AvaloniaCoreHost(msg => StatusText.Text = msg);
             editor = new BeatmapEditor(host);
-            editor.BeatmapSwitched += (_, _) => { UpdateHeroBackground(); RefreshControlsFromModel(); };
+            editor.BeatmapSwitched += (_, _) => { UpdateHeroBackground(); RefreshControlsFromModel(); SeedPracticeLadderFields(); };
             editor.BeatmapModified += (_, _) => RefreshControlsFromModel();
             editor.ControlsModified += (_, _) => RefreshControlsFromModel();
             editor.StateChanged += (_, _) => RefreshState();
@@ -51,8 +54,13 @@ namespace osu_trainer_avalonia
             WireDifficultyRows();
             BuildProfileSlots();
 
+            LadderFromBox.TextChanged += (_, _) => UpdateLadderCount();
+            LadderToBox.TextChanged += (_, _) => UpdateLadderCount();
+            LadderStepBox.TextChanged += (_, _) => UpdateLadderCount();
+
             UpdateRateBubble(RateSlider.Value);
             RefreshControlsFromModel();
+            SeedPracticeLadderFields();
 
             settingsStore = new SettingsStore(msg => StatusText.Text = msg);
             var loadedSettings = settingsStore.Load();
@@ -117,7 +125,88 @@ namespace osu_trainer_avalonia
             editor.RequestBeatmapLoad(PathTextBox.Text);
         }
 
-        private void OnGenerateClick(object? sender, RoutedEventArgs e) => editor.GenerateBeatmap();
+        private CancellationTokenSource? batchCts;
+
+        private async void OnGenerateClick(object? sender, RoutedEventArgs e)
+        {
+            if (batchCts != null)
+            {
+                batchCts.Cancel();
+                return;
+            }
+
+            if (!TryParseLadder(out var ladder, out string ladderError))
+            {
+                StatusText.Text = ladderError;
+                return;
+            }
+            if (!TryParsePracticeRange(out var range, out string rangeSuffix, out string rangeError))
+            {
+                StatusText.Text = rangeError;
+                return;
+            }
+
+            batchCts = new CancellationTokenSource();
+            GenerateButton.Content = "Cancel";
+            RefreshState();
+
+            var progress = new Progress<BeatmapEditor.BatchProgress>(p =>
+                StatusText.Text = $"Generating {p.Completed}/{p.Total} — {p.Rate:0.00}x");
+
+            try
+            {
+                var result = await editor.GenerateBatchAsync(ladder, range, rangeSuffix, progress, batchCts.Token);
+                StatusText.Text = result switch
+                {
+                    BeatmapEditor.BatchResult.Cancelled => "Generation cancelled.",
+                    BeatmapEditor.BatchResult.NoObjectsInRange => "Practice cut: no hit objects in that range.",
+                    BeatmapEditor.BatchResult.Published => "Generated.",
+                    _ => StatusText.Text, // Failed: message already set via ICoreHost.ShowError
+                };
+            }
+            finally
+            {
+                batchCts.Dispose();
+                batchCts = null;
+                GenerateButton.Content = "Generate";
+                RefreshState();
+            }
+        }
+
+        private bool TryParseLadder(out IReadOnlyList<decimal> ladder, out string error) =>
+            PracticeMath.TryValidateLadder(LadderFromBox.Text, LadderToBox.Text, LadderStepBox.Text, out ladder, out error);
+
+        private bool TryParsePracticeRange(out BeatmapEditor.PracticeRange? range, out string rangeSuffix, out string error)
+        {
+            bool ok = PracticeMath.TryValidatePracticeRange(PracticeStartBox.Text, PracticeEndBox.Text, out var tupleRange, out rangeSuffix, out error);
+            range = tupleRange.HasValue ? new BeatmapEditor.PracticeRange(tupleRange.Value.StartMs, tupleRange.Value.EndMs) : null;
+            return ok;
+        }
+
+        private void SeedPracticeLadderFields()
+        {
+            string rateText = editor.BpmRate.ToString("0.00", CultureInfo.InvariantCulture);
+            LadderFromBox.Text = rateText;
+            LadderToBox.Text = rateText;
+            LadderStepBox.Text = "0.05";
+            UpdateLadderCount();
+        }
+
+        private void UpdateLadderCount()
+        {
+            bool okFrom = decimal.TryParse(LadderFromBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal from);
+            bool okTo = decimal.TryParse(LadderToBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal to);
+            bool okStep = decimal.TryParse(LadderStepBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal step);
+
+            if (!okFrom || !okTo || !okStep)
+            {
+                LadderCountText.Text = "—";
+                return;
+            }
+
+            var built = PracticeMath.BuildLadder(from, to, step);
+            LadderCountText.Text = built.Count == 0 ? "—" : $"{built.Count} diffs";
+        }
 
         private void OnResetClick(object? sender, RoutedEventArgs e)
         {
@@ -443,11 +532,13 @@ namespace osu_trainer_avalonia
 
         // ---- state / refresh --------------------------------------------------
 
-        private void RefreshState() => GenerateButton.IsEnabled = editor.State == EditorState.READY;
+        private bool CanClickGenerate => editor.State == EditorState.READY || batchCts != null;
+
+        private void RefreshState() => GenerateButton.IsEnabled = CanClickGenerate;
 
         private void RefreshControlsFromModel()
         {
-            if (editor.State != EditorState.READY || editor.NewBeatmap == null)
+            if (editor.State == EditorState.NOT_READY || editor.NewBeatmap == null)
             {
                 string reason = editor.NotReadyReason switch
                 {
@@ -501,7 +592,7 @@ namespace osu_trainer_avalonia
             SongDifficulty.Text = map.Version;
             StatusText.Text = "Loaded.";
 
-            GenerateButton.IsEnabled = editor.State == EditorState.READY;
+            GenerateButton.IsEnabled = CanClickGenerate;
             HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = true;
 
             updatingFromModel = false;

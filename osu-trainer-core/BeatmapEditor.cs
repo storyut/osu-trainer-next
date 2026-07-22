@@ -158,6 +158,10 @@ namespace OsuTrainerCore
             }
             return newBeatmap;
         }
+        public readonly record struct PracticeRange(int StartMs, int EndMs);
+
+        private sealed record ExportArtifact(string OsuPath, string Mp3Path);
+
         public void GenerateBeatmap()
         {
             if (State != EditorState.READY)
@@ -165,11 +169,94 @@ namespace OsuTrainerCore
 
             SetState(EditorState.GENERATING_BEATMAP);
 
+            var (artifact, _) = BuildExportArtifact(null, null, forceRateSuffix: false);
+            PublishOsz(Path.GetDirectoryName(OriginalBeatmap.Filename), new[] { artifact });
+            DeleteArtifacts(new[] { artifact });
+
+            SetState(EditorState.READY);
+        }
+
+        public readonly record struct BatchProgress(int Completed, int Total, decimal Rate);
+
+        public enum BatchResult { Published, Cancelled, NoObjectsInRange, Failed }
+
+        // Called and awaited on the UI thread. SetState and every event raise happen on
+        // this thread, outside Task.Run; only the per-step build runs inside Task.Run.
+        // progress captures Avalonia's synchronization context at construction, so no
+        // manual marshalling is done here.
+        public async Task<BatchResult> GenerateBatchAsync(IReadOnlyList<decimal> rates, PracticeRange? range, string rangeSuffix, IProgress<BatchProgress> progress, CancellationToken ct)
+        {
+            if (State != EditorState.READY)
+                return BatchResult.Failed;
+
+            decimal preBatchRate = BpmRate;
+            SetState(EditorState.GENERATING_BEATMAP);
+
+            var artifacts = new List<ExportArtifact>();
+            decimal currentRate = preBatchRate;
+
+            try
+            {
+                for (int i = 0; i < rates.Count; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+
+                    currentRate = rates[i];
+                    SetBpmMultiplier(currentRate);
+
+                    bool forceRateSuffix = rates.Count > 1;
+                    var (artifact, survivingObjects) = await Task.Run(() => BuildExportArtifact(range, rangeSuffix, forceRateSuffix));
+                    artifacts.Add(artifact);
+
+                    if (i == 0 && range != null && survivingObjects == 0)
+                    {
+                        DeleteArtifacts(artifacts);
+                        RestoreRate(preBatchRate);
+                        SetState(EditorState.READY);
+                        return BatchResult.NoObjectsInRange;
+                    }
+
+                    progress?.Report(new BatchProgress(i + 1, rates.Count, currentRate));
+                }
+
+                string songFolder = Path.GetDirectoryName(OriginalBeatmap.Filename);
+                await Task.Run(() => PublishOsz(songFolder, artifacts));
+            }
+            catch (OperationCanceledException)
+            {
+                DeleteArtifacts(artifacts);
+                RestoreRate(preBatchRate);
+                SetState(EditorState.READY);
+                return BatchResult.Cancelled;
+            }
+            catch (Exception ex)
+            {
+                DeleteArtifacts(artifacts);
+                host.ShowError($"Failed to generate {currentRate:0.00}x: {ex.Message}");
+                RestoreRate(preBatchRate);
+                SetState(EditorState.READY);
+                return BatchResult.Failed;
+            }
+
+            DeleteArtifacts(artifacts);
+            RestoreRate(preBatchRate);
+            SetState(EditorState.READY);
+            return BatchResult.Published;
+        }
+
+        private void RestoreRate(decimal rate)
+        {
+            if (BpmRate != rate)
+                SetBpmMultiplier(rate);
+        }
+
+        private (ExportArtifact Artifact, int SurvivingObjects) BuildExportArtifact(PracticeRange? range, string rangeSuffix, bool forceRateSuffix = false)
+        {
             bool compensateForDT = (NewBeatmap.ApproachRate > 10 || NewBeatmap.OverallDifficulty > 10);
 
             // Set metadata
             Beatmap exportBeatmap = new Beatmap(NewBeatmap);
-            ModifyBeatmapMetadata(exportBeatmap, BpmRate, ChangePitch, compensateForDT);
+            ModifyBeatmapMetadata(exportBeatmap, BpmRate, ChangePitch, compensateForDT, range != null ? rangeSuffix : null, forceRateSuffix);
 
             // Slow down map by 1.5x
             if (compensateForDT)
@@ -186,7 +273,7 @@ namespace OsuTrainerCore
 
             // Generate new mp3
             var audioFilePath = Path.Combine(JunUtils.GetBeatmapDirectoryName(OriginalBeatmap), exportBeatmap.AudioFilename);
-            var newMp3 = "";
+            string newMp3 = null;
             if (!File.Exists(audioFilePath))
             {
                 string inFile = Path.Combine(Path.GetDirectoryName(OriginalBeatmap.Filename), OriginalBeatmap.AudioFilename);
@@ -207,17 +294,14 @@ namespace OsuTrainerCore
             exportBeatmap.Filename = Path.GetFileName(exportBeatmap.Filename);
             exportBeatmap.Save();
 
-            // create and execute osz
-            AddNewBeatmapToSongFolder(Path.GetDirectoryName(OriginalBeatmap.Filename), exportBeatmap.Filename, newMp3);
+            int survivingObjects = 0;
+            if (range != null)
+                survivingObjects = PracticeCut.TrimOsuFile(exportBeatmap.Filename, range.Value.StartMs, range.Value.EndMs);
 
-            // clean up .osu
-            File.Delete(exportBeatmap.Filename);
-
-            // post
-            SetState(EditorState.READY);
+            return (new ExportArtifact(exportBeatmap.Filename, newMp3), survivingObjects);
         }
 
-        private void AddNewBeatmapToSongFolder(string songFolder, string newBeatmapFile, string newMp3)
+        private void PublishOsz(string songFolder, IReadOnlyList<ExportArtifact> artifacts)
         {
             // 1. Create osz (just a regular zip file with file ext. renamed to .osz)
             string outputOsz = Path.GetFileNameWithoutExtension(songFolder) + ".osz";
@@ -234,11 +318,11 @@ namespace OsuTrainerCore
             // 2. Add new files to zip/osz
             using (ZipArchive archive = ZipFile.Open(outputOsz, ZipArchiveMode.Update))
             {
-                archive.CreateEntryFromFile(newBeatmapFile, Path.GetFileName(newBeatmapFile));
-                if (newMp3 != "")
+                foreach (var artifact in artifacts)
                 {
-                    archive.CreateEntryFromFile(newMp3, Path.GetFileName(newMp3));
-                    File.Delete(newMp3);
+                    archive.CreateEntryFromFile(artifact.OsuPath, Path.GetFileName(artifact.OsuPath));
+                    if (artifact.Mp3Path != null)
+                        archive.CreateEntryFromFile(artifact.Mp3Path, Path.GetFileName(artifact.Mp3Path));
                 }
             }
             // 3. Run the .osz
@@ -254,6 +338,33 @@ namespace OsuTrainerCore
                 host.ShowError("There was an error opening the generated .osz file. This is probably because .osz files have not been configured to open with osu!.exe on this system." + Environment.NewLine + Environment.NewLine +
                     "To fix this, download any map from the website, right click the .osz file, click properties, beside Opens with... click Change..., and select osu!. " +
                     "You'll know the problem is fixed when you can double click .osz files to open them with osu!");
+            }
+        }
+
+        // Best-effort temp cleanup: a file may already be gone (e.g. GenerateBeatmap's own
+        // .osu path after a successful PublishOsz), which is not a failure worth surfacing.
+        // Any other IOException is logged so a stray temp file is still diagnosable (OPS-1).
+        private static void DeleteArtifacts(IReadOnlyList<ExportArtifact> artifacts)
+        {
+            foreach (var artifact in artifacts)
+            {
+                DeleteIfExists(artifact.OsuPath);
+                if (artifact.Mp3Path != null)
+                    DeleteIfExists(artifact.Mp3Path);
+            }
+        }
+
+        private static void DeleteIfExists(string path)
+        {
+            if (!File.Exists(path))
+                return;
+            try
+            {
+                File.Delete(path);
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine($"Failed to delete temp artifact {path}: {e.Message}");
             }
         }
 
@@ -798,7 +909,7 @@ namespace OsuTrainerCore
         // OUT: beatmap.Filename
         // OUT: beatmap.AudioFilename
         // OUT: beatmap.Tags
-        private void ModifyBeatmapMetadata(Beatmap map, decimal multiplier, bool changePitch = false, bool preDT = false)
+        private void ModifyBeatmapMetadata(Beatmap map, decimal multiplier, bool changePitch = false, bool preDT = false, string rangeSuffix = null, bool forceRateSuffix = false)
         {
             // Difficulty Name and AudioFilename
             if (preDT)
@@ -810,7 +921,10 @@ namespace OsuTrainerCore
                     map.AudioFilename += $" (pitch {(multiplier < 1 ? "lowered" : "raised")})";
                 map.AudioFilename += ".mp3";
             }
-            else if (Math.Abs(multiplier - 1M) > 0.001M)
+            // forceRateSuffix (batch generation with more than one rate) always distinguishes the
+            // filename by rate, even at exactly 1.00x — otherwise a ladder step at 1.00x would save
+            // under the same filename as the unmodified original diff and collide with it in the .osz.
+            else if (Math.Abs(multiplier - 1M) > 0.001M || forceRateSuffix)
             {
                 string bpm = map.Bpm.ToString("0");
                 map.Version += $" {multiplier:0.##}x ({bpm}bpm)";
@@ -842,6 +956,9 @@ namespace OsuTrainerCore
 
             //if (NoSpinners)
             //    map.Version += " nospin";
+
+            if (!string.IsNullOrEmpty(rangeSuffix))
+                map.Version += $" {rangeSuffix}";
 
             // Beatmap File Name
             string artist  = JunUtils.NormalizeText(map.Artist);

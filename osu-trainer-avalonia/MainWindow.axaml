@@ -177,6 +177,27 @@
                       AutomationProperties.AutomationId="UpdatesCheck"/>
             <Button x:Name="EditHotkeysButton" Content="Edit Hotkeys (coming soon)" IsEnabled="False"
                     HorizontalAlignment="Left"/>
+
+            <TextBlock Text="Practice cut" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
+            <Grid ColumnDefinitions="*,*">
+              <TextBox Grid.Column="0" x:Name="PracticeStartBox" Watermark="0:00" Margin="0,0,4,0"
+                        AutomationProperties.AutomationId="PracticeStartBox"/>
+              <TextBox Grid.Column="1" x:Name="PracticeEndBox" Watermark="0:00" Margin="4,0,0,0"
+                        AutomationProperties.AutomationId="PracticeEndBox"/>
+            </Grid>
+
+            <TextBlock Text="Rate ladder" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
+            <Grid ColumnDefinitions="*,*,*">
+              <TextBox Grid.Column="0" x:Name="LadderFromBox" Watermark="1.00" Margin="0,0,4,0"
+                        AutomationProperties.AutomationId="LadderFromBox"/>
+              <TextBox Grid.Column="1" x:Name="LadderToBox" Watermark="1.00" Margin="4,0,4,0"
+                        AutomationProperties.AutomationId="LadderToBox"/>
+              <TextBox Grid.Column="2" x:Name="LadderStepBox" Watermark="0.05" Margin="4,0,0,0"
+                        AutomationProperties.AutomationId="LadderStepBox"/>
+            </Grid>
+            <TextBlock x:Name="LadderCountText" Text="1 diffs" Foreground="#B0B0B8"
+                       FontSize="{DynamicResource FontSizeCaption}"
+                       AutomationProperties.AutomationId="LadderCountText"/>
           </StackPanel>
         </Border>
 
