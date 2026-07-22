@@ -44,6 +44,17 @@ namespace osu_trainer_avalonia.Controls
             return $"({Round(min)} – {Round(max)})";
         }
 
+        /// <summary>
+        /// Formats the merged rate + BPM line: "Rate 1.20x  |  180 → 216", or "—" when the
+        /// map has no BPM data.
+        /// </summary>
+        public static string FormatRateBpmLine(decimal rate, decimal originalBpm, decimal newBpm)
+        {
+            if (originalBpm == 0 && newBpm == 0)
+                return "—";
+            return $"Rate {rate.ToString("0.00", CultureInfo.InvariantCulture)}x  |  {FormatBpm(originalBpm, newBpm)}";
+        }
+
         private static int Round(decimal value) =>
             (int)Math.Round(value, MidpointRounding.AwayFromZero);
     }

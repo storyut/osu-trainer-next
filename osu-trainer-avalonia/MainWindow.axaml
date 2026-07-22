@@ -8,22 +8,9 @@
         SystemDecorations="None"
         Background="{DynamicResource WindowBackground}"
         FontFamily="avares://osu-trainer-avalonia/Assets/Fonts/Quicksand-Variable.ttf#Quicksand">
-  <Grid>
-    <!-- Hero background (dimmed + blurred) fills the whole window, behind everything.
-         Painted as an ImageBrush on a Rectangle rather than an Image element: with
-         SizeToContent="Height" an Image reports the bitmap's natural size during measure
-         and stretches the window to the wallpaper's height. A Rectangle desires 0 and
-         simply stretches to whatever the content stack decides. -->
-    <Rectangle x:Name="HeroBackgroundRect" IsVisible="False">
-      <Rectangle.Effect>
-        <BlurEffect Radius="20"/>
-      </Rectangle.Effect>
-    </Rectangle>
-    <Rectangle Fill="Black" Opacity="0.55"/>
-
-    <StackPanel>
-      <!-- 1. Custom title bar (draggable) -->
-      <Border x:Name="TitleBar" Background="#14141A" Padding="14,8" PointerPressed="OnTitleBarPressed">
+  <Grid RowDefinitions="Auto,*">
+      <!-- 1. Custom title bar (draggable), spanning both columns -->
+      <Border x:Name="TitleBar" Grid.Row="0" Background="#14141A" Padding="14,8" PointerPressed="OnTitleBarPressed">
         <Grid ColumnDefinitions="*,Auto,Auto">
           <TextBlock Grid.Column="0" Text="osu!trainer" Foreground="{DynamicResource TextPrimary}"
                      FontWeight="Bold" VerticalAlignment="Center"/>
@@ -40,7 +27,9 @@
         </Grid>
       </Border>
 
-      <StackPanel Margin="12" Spacing="8">
+    <!-- Row 1: left content column (fixed 376px) + right extras column (collapsed at rest) -->
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,Auto">
+      <StackPanel Grid.Column="0" Width="376" Margin="12" Spacing="8">
         <!-- Update-available row (hidden until a newer GitHub release is found) -->
         <Grid x:Name="UpdateRow" IsVisible="False" ColumnDefinitions="*,Auto"
               Background="{DynamicResource CardBackground}" Margin="0,0,0,4">
@@ -56,52 +45,59 @@
           </Button>
         </Grid>
 
-        <!-- 2. Song display over the dimmed background -->
-        <Grid ColumnDefinitions="*,Auto">
-          <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
-            <TextBlock x:Name="SongTitle" Text="No beatmap loaded." Foreground="{DynamicResource TextPrimary}"
-                       FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
-                       AutomationProperties.AutomationId="SongTitle"/>
-            <TextBlock x:Name="SongArtist" Text="" Foreground="#B0B0B8" FontSize="{DynamicResource FontSizeBody}"
-                       TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongArtist"/>
-            <TextBlock x:Name="SongDifficulty" Text="" Foreground="{DynamicResource AccentPink}" FontSize="{DynamicResource FontSizeBody}"
-                       TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongDifficulty"/>
-          </StackPanel>
-          <controls:StarRatingDiamond Grid.Column="1" x:Name="StarRatingDiamond" VerticalAlignment="Center"
-                                       AutomationProperties.AutomationId="StarRatingDiamond"/>
-        </Grid>
+        <!-- 2. Beatmap card: artwork, sharp, with a bottom scrim carrying the text.
+             Rectangle rather than Image for the same reason unit 003 gave: with
+             SizeToContent an Image measures at the bitmap's natural size and stretches
+             the window. -->
+        <Border Height="86" CornerRadius="{DynamicResource ControlCornerRadius}"
+                ClipToBounds="True" Background="{DynamicResource CardBackground}"
+                BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
+          <Grid>
+            <Rectangle x:Name="BeatmapCardArt" IsVisible="False"/>
+            <Rectangle VerticalAlignment="Bottom" Height="56">
+              <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
+                  <GradientStop Offset="0" Color="#E6000000"/>
+                  <GradientStop Offset="1" Color="#00000000"/>
+                </LinearGradientBrush>
+              </Rectangle.Fill>
+            </Rectangle>
+            <Grid Margin="10,0,10,8" VerticalAlignment="Bottom" ColumnDefinitions="*,Auto">
+              <StackPanel Grid.Column="0" Spacing="1">
+                <StackPanel.Effect>
+                  <DropShadowEffect BlurRadius="4" OffsetX="0" OffsetY="1"
+                                    Color="Black" Opacity="0.9"/>
+                </StackPanel.Effect>
+                <TextBlock x:Name="SongTitle" Text="No beatmap loaded." Foreground="{DynamicResource TextPrimary}"
+                           FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                           AutomationProperties.AutomationId="SongTitle"/>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock x:Name="SongArtist" Text="" Foreground="#D8D8E0" FontSize="{DynamicResource FontSizeCaption}"
+                             TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongArtist"/>
+                  <TextBlock x:Name="SongDifficulty" Text="" Foreground="{DynamicResource AccentPink}" FontSize="{DynamicResource FontSizeCaption}"
+                             TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongDifficulty"/>
+                </StackPanel>
+              </StackPanel>
+              <controls:StarRatingDiamond Grid.Column="1" x:Name="StarRatingDiamond" VerticalAlignment="Bottom"
+                                           AutomationProperties.AutomationId="StarRatingDiamond"/>
+            </Grid>
+          </Grid>
+        </Border>
 
-        <!-- Manual load row + status -->
-        <Grid ColumnDefinitions="*,Auto">
-          <TextBox Grid.Column="0" x:Name="PathTextBox" Margin="0,0,8,0"
-                   Watermark="Path to a .osu file (auto-fills when osu! is open)"
-                   AutomationProperties.AutomationId="PathTextBox"/>
-          <Button Grid.Column="1" x:Name="LoadButton" Content="Load" Click="OnLoadClick"
-                  AutomationProperties.AutomationId="LoadButton"/>
-        </Grid>
         <TextBlock x:Name="StatusText" Text="No beatmap loaded." Foreground="#B0B0B8" FontSize="{DynamicResource FontSizeCaption}"
                    AutomationProperties.AutomationId="StatusText"/>
 
-        <!-- 3. Hero rate card -->
+        <!-- 3. Rate card -->
         <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
                 BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
-          <StackPanel Spacing="8">
-            <TextBlock Text="Rate" Foreground="{DynamicResource TextPrimary}" FontWeight="Bold" FontSize="{DynamicResource FontSizeHeader}"/>
-            <Grid Height="40">
-              <Slider x:Name="RateSlider" Width="352" HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                      Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged"
-                      AutomationProperties.AutomationId="RateSlider"/>
-              <Border x:Name="RateBubble" Background="{DynamicResource AccentPink}" CornerRadius="10"
-                      Padding="6,3" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <TextBlock x:Name="RateBubbleText" Foreground="White" FontWeight="Bold" Text="1.00x"
-                           AutomationProperties.AutomationId="RateBubbleText"/>
-              </Border>
-            </Grid>
-            <!-- BPM readout row -->
+          <StackPanel Spacing="6">
+            <Slider x:Name="RateSlider" Minimum="0.5" Maximum="2.0" Value="1.0" ValueChanged="OnRateChanged"
+                    AutomationProperties.AutomationId="RateSlider"/>
+            <!-- Merged rate + BPM readout row -->
             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-              <TextBlock Grid.Column="0" x:Name="BpmText" Text="—" Foreground="{DynamicResource TextPrimary}"
+              <TextBlock Grid.Column="0" x:Name="RateBpmText" Text="—" Foreground="{DynamicResource TextPrimary}"
                          FontWeight="Bold" VerticalAlignment="Center"
-                         AutomationProperties.AutomationId="BpmText"/>
+                         AutomationProperties.AutomationId="RateBpmText"/>
               <TextBlock Grid.Column="1" x:Name="BpmRangeText" Text="" Foreground="#B0B0B8" Margin="8,0,0,0"
                          VerticalAlignment="Center" AutomationProperties.AutomationId="BpmRangeText"/>
               <ToggleButton Grid.Column="3" x:Name="BpmLockButton" Click="OnBpmLockClick"
@@ -118,8 +114,8 @@
 
         <!-- 4. Difficulty card -->
         <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
-                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
-          <StackPanel Spacing="10">
+                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="10">
+          <StackPanel Spacing="6">
             <controls:DifficultyRow x:Name="HpRow" Label="HP" Minimum="0" Maximum="10"
                                     AutomationProperties.AutomationId="HpRow"/>
             <controls:DifficultyRow x:Name="CsRow" Label="CS" Minimum="0" Maximum="10"
@@ -163,45 +159,7 @@
           </Button>
         </Grid>
 
-        <!-- 6. Extras (collapsible) -->
-        <Border x:Name="ExtrasPanel" IsVisible="False" Background="{DynamicResource CardBackground}"
-                BorderBrush="{DynamicResource CardBorder}" BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
-          <StackPanel Spacing="8">
-            <CheckBox x:Name="NoSpinnersCheck" Content="No Spinners" Click="OnNoSpinnersClick"
-                      AutomationProperties.AutomationId="NoSpinnersCheck"/>
-            <CheckBox x:Name="ChangePitchCheck" Content="Change Pitch" Click="OnChangePitchClick"
-                      AutomationProperties.AutomationId="ChangePitchCheck"/>
-            <CheckBox x:Name="HqMp3Check" Content="High-Quality MP3" Click="OnHqMp3Click"
-                      AutomationProperties.AutomationId="HqMp3Check"/>
-            <CheckBox x:Name="UpdatesCheck" Content="Check for updates" Click="OnUpdatesCheckClick"
-                      AutomationProperties.AutomationId="UpdatesCheck"/>
-            <Button x:Name="EditHotkeysButton" Content="Edit Hotkeys (coming soon)" IsEnabled="False"
-                    HorizontalAlignment="Left"/>
-
-            <TextBlock Text="Practice cut" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
-            <Grid ColumnDefinitions="*,*">
-              <TextBox Grid.Column="0" x:Name="PracticeStartBox" Watermark="0:00" Margin="0,0,4,0"
-                        AutomationProperties.AutomationId="PracticeStartBox"/>
-              <TextBox Grid.Column="1" x:Name="PracticeEndBox" Watermark="0:00" Margin="4,0,0,0"
-                        AutomationProperties.AutomationId="PracticeEndBox"/>
-            </Grid>
-
-            <TextBlock Text="Rate ladder" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
-            <Grid ColumnDefinitions="*,*,*">
-              <TextBox Grid.Column="0" x:Name="LadderFromBox" Watermark="1.00" Margin="0,0,4,0"
-                        AutomationProperties.AutomationId="LadderFromBox"/>
-              <TextBox Grid.Column="1" x:Name="LadderToBox" Watermark="1.00" Margin="4,0,4,0"
-                        AutomationProperties.AutomationId="LadderToBox"/>
-              <TextBox Grid.Column="2" x:Name="LadderStepBox" Watermark="0.05" Margin="4,0,0,0"
-                        AutomationProperties.AutomationId="LadderStepBox"/>
-            </Grid>
-            <TextBlock x:Name="LadderCountText" Text="1 diffs" Foreground="#B0B0B8"
-                       FontSize="{DynamicResource FontSizeCaption}"
-                       AutomationProperties.AutomationId="LadderCountText"/>
-          </StackPanel>
-        </Border>
-
-        <!-- 7. Bottom bar -->
+        <!-- 6. Bottom bar -->
         <Grid ColumnDefinitions="Auto,*,Auto">
           <Button Grid.Column="0" x:Name="ResetButton" Click="OnResetClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
@@ -226,6 +184,48 @@
           </Button>
         </Grid>
       </StackPanel>
-    </StackPanel>
+
+      <!-- 7. Extras: a right-hand column that appears when the window widens to 720px.
+           The left column keeps its 376px width, so nothing in it moves. -->
+      <Border Grid.Column="1" x:Name="ExtrasPanel" IsVisible="False" Width="296"
+              Margin="0,12,12,12" VerticalAlignment="Top"
+              Background="{DynamicResource CardBackground}"
+              BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"
+              CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
+        <StackPanel Spacing="8">
+          <CheckBox x:Name="NoSpinnersCheck" Content="No Spinners" Click="OnNoSpinnersClick"
+                    AutomationProperties.AutomationId="NoSpinnersCheck"/>
+          <CheckBox x:Name="ChangePitchCheck" Content="Change Pitch" Click="OnChangePitchClick"
+                    AutomationProperties.AutomationId="ChangePitchCheck"/>
+          <CheckBox x:Name="HqMp3Check" Content="High-Quality MP3" Click="OnHqMp3Click"
+                    AutomationProperties.AutomationId="HqMp3Check"/>
+          <CheckBox x:Name="UpdatesCheck" Content="Check for updates" Click="OnUpdatesCheckClick"
+                    AutomationProperties.AutomationId="UpdatesCheck"/>
+          <Button x:Name="EditHotkeysButton" Content="Edit Hotkeys (coming soon)" IsEnabled="False"
+                  HorizontalAlignment="Left"/>
+
+          <TextBlock Text="Practice cut" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
+          <Grid ColumnDefinitions="*,*">
+            <TextBox Grid.Column="0" x:Name="PracticeStartBox" Watermark="0:00" Margin="0,0,4,0"
+                      AutomationProperties.AutomationId="PracticeStartBox"/>
+            <TextBox Grid.Column="1" x:Name="PracticeEndBox" Watermark="0:00" Margin="4,0,0,0"
+                      AutomationProperties.AutomationId="PracticeEndBox"/>
+          </Grid>
+
+          <TextBlock Text="Rate ladder" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
+          <Grid ColumnDefinitions="*,*,*">
+            <TextBox Grid.Column="0" x:Name="LadderFromBox" Watermark="1.00" Margin="0,0,4,0"
+                      AutomationProperties.AutomationId="LadderFromBox"/>
+            <TextBox Grid.Column="1" x:Name="LadderToBox" Watermark="1.00" Margin="4,0,4,0"
+                      AutomationProperties.AutomationId="LadderToBox"/>
+            <TextBox Grid.Column="2" x:Name="LadderStepBox" Watermark="0.05" Margin="4,0,0,0"
+                      AutomationProperties.AutomationId="LadderStepBox"/>
+          </Grid>
+          <TextBlock x:Name="LadderCountText" Text="1 diffs" Foreground="#B0B0B8"
+                     FontSize="{DynamicResource FontSizeCaption}"
+                     AutomationProperties.AutomationId="LadderCountText"/>
+        </StackPanel>
+      </Border>
+    </Grid>
   </Grid>
 </Window>

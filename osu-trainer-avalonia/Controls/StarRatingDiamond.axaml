@@ -1,15 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="osu_trainer_avalonia.Controls.StarRatingDiamond"
-             Width="90" Height="40">
+             Width="58" Height="20">
   <Grid>
-    <Border x:Name="Diamond" Width="20" Height="20" CornerRadius="4"
+    <Border x:Name="Diamond" Width="12" Height="12" CornerRadius="3"
             HorizontalAlignment="Left" VerticalAlignment="Center" Background="#17161C">
       <Border.RenderTransform>
         <RotateTransform Angle="45"/>
       </Border.RenderTransform>
     </Border>
-    <TextBlock x:Name="StarsText" Margin="34,0,0,0" VerticalAlignment="Center"
-               FontWeight="Bold" FontSize="18" Foreground="White" Text="0.00"/>
+    <TextBlock x:Name="StarsText" Margin="20,0,0,0" VerticalAlignment="Center"
+               FontWeight="Bold" FontSize="13" Foreground="White" Text="0.00"/>
   </Grid>
 </UserControl>

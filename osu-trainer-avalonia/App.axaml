@@ -44,6 +44,14 @@
         <SolidColorBrush x:Key="SliderTrackValueFill">#FF66AA</SolidColorBrush>
         <SolidColorBrush x:Key="SliderTrackValueFillPointerOver">#FF80BB</SolidColorBrush>
         <SolidColorBrush x:Key="SliderTrackValueFillPressed">#FF80BB</SolidColorBrush>
+        <!-- Smaller slider thumbs across the app. These must be set as theme resources, not
+             as a "Slider /template/ Thumb" style: the Thumb lives inside Track's template,
+             one template level deeper than /template/ reaches, so such a selector never
+             matches and the thumb silently keeps its default size. -->
+        <sys:Double x:Key="SliderHorizontalThumbWidth">12</sys:Double>
+        <sys:Double x:Key="SliderHorizontalThumbHeight">12</sys:Double>
+        <CornerRadius x:Key="SliderThumbCornerRadius">6</CornerRadius>
+
         <SolidColorBrush x:Key="SliderThumbBackground">#FFFFFF</SolidColorBrush>
         <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver">#FF66AA</SolidColorBrush>
         <SolidColorBrush x:Key="SliderThumbBackgroundPressed">#FF66AA</SolidColorBrush>
@@ -68,6 +76,28 @@
         <Style Selector="TextBox">
             <Setter Property="Padding" Value="6,4" />
             <Setter Property="MinHeight" Value="28" />
+        </Style>
+
+        <!-- A difficulty value reads as plain text ("AR 8") until touched, then grows its
+             box ("AR [8]"). Targets PART_BorderElement because Fluent's own
+             :pointerover/:focus template setters win over properties set on the TextBox. -->
+        <Style Selector="TextBox.inline">
+            <Setter Property="Padding" Value="2,0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+        </Style>
+        <Style Selector="TextBox.inline /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox.inline:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#24242E" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBox.inline:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#24242E" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
 
         <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">

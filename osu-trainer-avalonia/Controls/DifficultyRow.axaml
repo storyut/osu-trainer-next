@@ -2,15 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:lucideAvalonia="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
              x:Class="osu_trainer_avalonia.Controls.DifficultyRow">
-  <Grid ColumnDefinitions="30,50,*,Auto,Auto" VerticalAlignment="Center">
-    <TextBlock x:Name="LabelText" Grid.Column="0" Text="AR"
+  <Grid ColumnDefinitions="24,Auto,*,Auto,Auto" VerticalAlignment="Center">
+    <TextBlock x:Name="LabelText" Grid.Column="0" Text="AR" Margin="0,0,2,0"
                Foreground="{DynamicResource TextPrimary}" FontWeight="Bold"
                FontSize="{DynamicResource FontSizeBody}"
                VerticalAlignment="Center"/>
     <TextBox x:Name="ValueBox" Grid.Column="1" Text="0" Margin="0,0,8,0"
-             Padding="6,3" MinHeight="0" TextAlignment="Center"
-             VerticalContentAlignment="Center"
-             Background="#24242E" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1"/>
+             Classes="inline" MinWidth="30" TextAlignment="Left"
+             VerticalContentAlignment="Center"/>
     <Slider x:Name="ValueSlider" Grid.Column="2" Minimum="0" Maximum="11"
             VerticalAlignment="Center"/>
     <ToggleButton x:Name="LockButton" Grid.Column="3" Margin="8,0,0,0"

@@ -45,7 +45,7 @@ namespace osu_trainer_avalonia
 
             var host = new AvaloniaCoreHost(msg => StatusText.Text = msg);
             editor = new BeatmapEditor(host);
-            editor.BeatmapSwitched += (_, _) => { UpdateHeroBackground(); RefreshControlsFromModel(); SeedPracticeLadderFields(); };
+            editor.BeatmapSwitched += (_, _) => { UpdateBeatmapCardArt(); RefreshControlsFromModel(); SeedPracticeLadderFields(); };
             editor.BeatmapModified += (_, _) => RefreshControlsFromModel();
             editor.ControlsModified += (_, _) => RefreshControlsFromModel();
             editor.StateChanged += (_, _) => RefreshState();
@@ -58,7 +58,6 @@ namespace osu_trainer_avalonia
             LadderToBox.TextChanged += (_, _) => UpdateLadderCount();
             LadderStepBox.TextChanged += (_, _) => UpdateLadderCount();
 
-            UpdateRateBubble(RateSlider.Value);
             RefreshControlsFromModel();
             SeedPracticeLadderFields();
 
@@ -76,11 +75,7 @@ namespace osu_trainer_avalonia
 
             liveMapWatcher = new LiveMapWatcher(host);
             liveMapWatcher.SongsFolderDetected += (_, folder) => OsuTrainerCore.JunUtils.SongsFolder = folder;
-            liveMapWatcher.BeatmapDetected += (_, path) =>
-            {
-                PathTextBox.Text = path;
-                editor.RequestBeatmapLoad(path);
-            };
+            liveMapWatcher.BeatmapDetected += (_, path) => editor.RequestBeatmapLoad(path);
             liveMapWatcher.Start();
 
             Closed += (_, _) => liveMapWatcher.Stop();
@@ -118,12 +113,6 @@ namespace osu_trainer_avalonia
         private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
         // ---- loading ----------------------------------------------------------
-
-        private void OnLoadClick(object? sender, RoutedEventArgs e)
-        {
-            StatusText.Text = "Loading...";
-            editor.RequestBeatmapLoad(PathTextBox.Text);
-        }
 
         private CancellationTokenSource? batchCts;
 
@@ -233,18 +222,8 @@ namespace osu_trainer_avalonia
 
         private void OnRateChanged(object? sender, RangeBaseValueChangedEventArgs e)
         {
-            UpdateRateBubble(e.NewValue);
             if (updatingFromModel) return;
             editor.SetBpmMultiplier((decimal)e.NewValue);
-        }
-
-        private void UpdateRateBubble(double value)
-        {
-            const double min = 0.5, max = 2.0, trackWidth = 352, bubbleWidth = 48;
-            double fraction = (value - min) / (max - min);
-            double left = fraction * (trackWidth - bubbleWidth);
-            RateBubble.Margin = new Thickness(left, -28, 0, 0);
-            RateBubbleText.Text = $"{value:0.00}x";
         }
 
         private void OnBpmLockClick(object? sender, RoutedEventArgs e)
@@ -301,6 +280,9 @@ namespace osu_trainer_avalonia
         {
             bool show = !ExtrasPanel.IsVisible;
             ExtrasPanel.IsVisible = show;
+            // The extras expand sideways: the left column keeps its designed 376px width and
+            // the window grows to make room, rather than the stack growing taller.
+            Width = show ? 720 : 400;
             MoreButtonIcon.Icon = show ? LucideIconNames.ChevronDown : LucideIconNames.ChevronRight;
             MoreButtonText.Text = show ? "Less" : "More";
         }
@@ -343,11 +325,10 @@ namespace osu_trainer_avalonia
             UpdatesCheck.IsChecked = s.UpdatesCheckEnabled;
 
             // No beatmap is loaded yet, so RefreshControlsFromModel() (which reads
-            // editor.NewBeatmap) can't run — but the rate slider/bubble aren't tied to a
-            // beatmap and should reflect the restored rate immediately, not just once one loads.
+            // editor.NewBeatmap) can't run — but the rate slider isn't tied to a beatmap and
+            // should reflect the restored rate immediately, not just once one loads.
             updatingFromModel = true;
             RateSlider.Value = (double)s.BpmRate;
-            UpdateRateBubble((double)s.BpmRate);
             updatingFromModel = false;
         }
 
@@ -549,6 +530,9 @@ namespace osu_trainer_avalonia
                 SongTitle.Text = reason;
                 SongArtist.Text = string.Empty;
                 SongDifficulty.Text = string.Empty;
+                // Without this the readout keeps showing the previous map's BPM line.
+                RateBpmText.Text = "—";
+                BpmRangeText.Text = string.Empty;
                 StatusText.Text = reason;
                 GenerateButton.IsEnabled = false;
                 HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = false;
@@ -558,7 +542,6 @@ namespace osu_trainer_avalonia
             updatingFromModel = true;
 
             RateSlider.Value = (double)editor.BpmRate;
-            UpdateRateBubble((double)editor.BpmRate);
 
             HpRow.Value = (double)editor.NewBeatmap.HPDrainRate;
             CsRow.Value = (double)editor.NewBeatmap.CircleSize;
@@ -576,7 +559,7 @@ namespace osu_trainer_avalonia
 
             var (origBpm, _, _) = editor.GetOriginalBpmData();
             var (newBpm, newMin, newMax) = editor.GetNewBpmData();
-            BpmText.Text = DifficultyMath.FormatBpm(origBpm, newBpm);
+            RateBpmText.Text = DifficultyMath.FormatRateBpmLine(editor.BpmRate, origBpm, newBpm);
             BpmRangeText.Text = DifficultyMath.FormatBpmRange(newMin, newMax);
             BpmLockButton.IsChecked = editor.BpmIsLocked;
 
@@ -598,37 +581,43 @@ namespace osu_trainer_avalonia
             updatingFromModel = false;
         }
 
-        private void UpdateHeroBackground()
+        /// <summary>
+        /// Paints the beatmap card's artwork. Every failure path hides the art rectangle,
+        /// which reveals the card's flat CardBackground — that empty card *is* the intended
+        /// fallback, so the catch below is a deliberate outcome, not a swallowed error.
+        /// </summary>
+        private void UpdateBeatmapCardArt()
         {
             try
             {
                 if (editor.OriginalBeatmap == null || string.IsNullOrEmpty(editor.OriginalBeatmap.Background))
                 {
-                    HeroBackgroundRect.IsVisible = false;
+                    BeatmapCardArt.IsVisible = false;
                     return;
                 }
 
                 string bgPath = Path.Combine(OsuTrainerCore.JunUtils.GetBeatmapDirectoryName(editor.OriginalBeatmap), editor.OriginalBeatmap.Background);
                 if (!File.Exists(bgPath))
                 {
-                    HeroBackgroundRect.IsVisible = false;
+                    BeatmapCardArt.IsVisible = false;
                     return;
                 }
 
                 using var stream = File.OpenRead(bgPath);
                 var bitmap = new Avalonia.Media.Imaging.Bitmap(stream);
-                HeroBackgroundRect.Fill = new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
-                HeroBackgroundRect.IsVisible = true;
+                BeatmapCardArt.Fill = new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
+                BeatmapCardArt.IsVisible = true;
 
                 // IsVisible flips false->true don't get an automatic re-layout on this
                 // Avalonia version, so the shape is otherwise left arranged at its stale
                 // (0-size) bounds and never paints.
-                HeroBackgroundRect.InvalidateMeasure();
-                HeroBackgroundRect.InvalidateArrange();
+                BeatmapCardArt.InvalidateMeasure();
+                BeatmapCardArt.InvalidateArrange();
             }
             catch
             {
-                HeroBackgroundRect.IsVisible = false;
+                // Unreadable/corrupt image: fall back to the flat card.
+                BeatmapCardArt.IsVisible = false;
             }
         }
     }

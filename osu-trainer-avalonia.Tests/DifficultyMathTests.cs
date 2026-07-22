@@ -40,5 +40,17 @@ namespace osu_trainer_avalonia.Tests
         [Fact]
         public void FormatBpmRange_HidesRangeForNoData() =>
             Assert.Equal(string.Empty, DifficultyMath.FormatBpmRange(0m, 0m));
+
+        [Fact]
+        public void FormatRateBpmLine_RendersRateAndBpm() =>
+            Assert.Equal("Rate 1.20x  |  180 → 216", DifficultyMath.FormatRateBpmLine(1.20m, 180m, 216m));
+
+        [Fact]
+        public void FormatRateBpmLine_RendersBothSidesAtRateOne() =>
+            Assert.Equal("Rate 1.00x  |  189 → 189", DifficultyMath.FormatRateBpmLine(1.00m, 189m, 189m));
+
+        [Fact]
+        public void FormatRateBpmLine_RendersDashWithoutBpmData() =>
+            Assert.Equal("—", DifficultyMath.FormatRateBpmLine(1.50m, 0m, 0m));
     }
 }
