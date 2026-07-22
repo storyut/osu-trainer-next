@@ -212,18 +212,35 @@
                       AutomationProperties.AutomationId="PracticeEndBox"/>
           </Grid>
 
-          <TextBlock Text="Rate ladder" Foreground="{DynamicResource TextPrimary}" FontWeight="SemiBold"/>
-          <Grid ColumnDefinitions="*,*,*">
-            <TextBox Grid.Column="0" x:Name="LadderFromBox" Watermark="1.00" Margin="0,0,4,0"
-                      AutomationProperties.AutomationId="LadderFromBox"/>
-            <TextBox Grid.Column="1" x:Name="LadderToBox" Watermark="1.00" Margin="4,0,4,0"
-                      AutomationProperties.AutomationId="LadderToBox"/>
-            <TextBox Grid.Column="2" x:Name="LadderStepBox" Watermark="0.05" Margin="4,0,0,0"
-                      AutomationProperties.AutomationId="LadderStepBox"/>
+          <CheckBox x:Name="LadderEnabledCheck" Content="Rate ladder" Click="OnLadderEnabledClick"
+                    AutomationProperties.AutomationId="LadderEnabledCheck"/>
+          <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+            <ToggleButton Grid.Row="0" Grid.Column="0" x:Name="LadderPresetDown10" Content="-0.10 → now"
+                          Tag="0.10,0" Click="OnLadderPresetClick" Margin="0,0,4,4" IsEnabled="False"
+                          AutomationProperties.AutomationId="LadderPresetDown10"/>
+            <ToggleButton Grid.Row="0" Grid.Column="1" x:Name="LadderPresetUp10" Content="now → +0.10"
+                          Tag="0,0.10" Click="OnLadderPresetClick" Margin="4,0,0,4" IsEnabled="False"
+                          AutomationProperties.AutomationId="LadderPresetUp10"/>
+            <ToggleButton Grid.Row="1" Grid.Column="0" x:Name="LadderPresetAround10" Content="±0.10 around"
+                          Tag="0.10,0.10" Click="OnLadderPresetClick" Margin="0,0,4,0"
+                          IsChecked="True" IsEnabled="False"
+                          AutomationProperties.AutomationId="LadderPresetAround10"/>
+            <ToggleButton Grid.Row="1" Grid.Column="1" x:Name="LadderPresetUp20" Content="now → +0.20"
+                          Tag="0,0.20" Click="OnLadderPresetClick" Margin="4,0,0,0" IsEnabled="False"
+                          AutomationProperties.AutomationId="LadderPresetUp20"/>
           </Grid>
-          <TextBlock x:Name="LadderCountText" Text="1 diffs" Foreground="#B0B0B8"
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <TextBlock Text="step" Foreground="{DynamicResource TextPrimary}" VerticalAlignment="Center"/>
+            <ToggleButton x:Name="LadderStep005" Content="0.05" Tag="0.05" Click="OnLadderStepClick"
+                          IsChecked="True" IsEnabled="False"
+                          AutomationProperties.AutomationId="LadderStep005"/>
+            <ToggleButton x:Name="LadderStep010" Content="0.10" Tag="0.10" Click="OnLadderStepClick"
+                          IsEnabled="False"
+                          AutomationProperties.AutomationId="LadderStep010"/>
+          </StackPanel>
+          <TextBlock x:Name="LadderPreviewText" Foreground="#B0B0B8"
                      FontSize="{DynamicResource FontSizeCaption}"
-                     AutomationProperties.AutomationId="LadderCountText"/>
+                     AutomationProperties.AutomationId="LadderPreviewText"/>
         </StackPanel>
       </Border>
     </Grid>

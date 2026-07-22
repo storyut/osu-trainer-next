@@ -35,6 +35,8 @@ namespace osu_trainer_avalonia
         private bool updatingFromModel;
         private AppSettings? pendingPersistedSettings;
         private string? pendingUpdateUrl;
+        private (decimal Below, decimal Above) ladderPreset = (0.10m, 0.10m);
+        private decimal ladderStep = 0.05m;
 
         /// <summary>Shared with <see cref="QuickSettingsWindow"/> so both windows drive the same model.</summary>
         public BeatmapEditor Editor => editor;
@@ -45,7 +47,7 @@ namespace osu_trainer_avalonia
 
             var host = new AvaloniaCoreHost(msg => StatusText.Text = msg);
             editor = new BeatmapEditor(host);
-            editor.BeatmapSwitched += (_, _) => { UpdateBeatmapCardArt(); RefreshControlsFromModel(); SeedPracticeLadderFields(); };
+            editor.BeatmapSwitched += (_, _) => { UpdateBeatmapCardArt(); RefreshControlsFromModel(); };
             editor.BeatmapModified += (_, _) => RefreshControlsFromModel();
             editor.ControlsModified += (_, _) => RefreshControlsFromModel();
             editor.StateChanged += (_, _) => RefreshState();
@@ -54,12 +56,7 @@ namespace osu_trainer_avalonia
             WireDifficultyRows();
             BuildProfileSlots();
 
-            LadderFromBox.TextChanged += (_, _) => UpdateLadderCount();
-            LadderToBox.TextChanged += (_, _) => UpdateLadderCount();
-            LadderStepBox.TextChanged += (_, _) => UpdateLadderCount();
-
             RefreshControlsFromModel();
-            SeedPracticeLadderFields();
 
             settingsStore = new SettingsStore(msg => StatusText.Text = msg);
             var loadedSettings = settingsStore.Load();
@@ -124,11 +121,9 @@ namespace osu_trainer_avalonia
                 return;
             }
 
-            if (!TryParseLadder(out var ladder, out string ladderError))
-            {
-                StatusText.Text = ladderError;
-                return;
-            }
+            IReadOnlyList<decimal> ladder = LadderEnabledCheck.IsChecked == true
+                ? PracticeMath.BuildAnchoredLadder(editor.BpmRate, ladderPreset.Below, ladderPreset.Above, ladderStep)
+                : new[] { editor.BpmRate };
             if (!TryParsePracticeRange(out var range, out string rangeSuffix, out string rangeError))
             {
                 StatusText.Text = rangeError;
@@ -162,9 +157,6 @@ namespace osu_trainer_avalonia
             }
         }
 
-        private bool TryParseLadder(out IReadOnlyList<decimal> ladder, out string error) =>
-            PracticeMath.TryValidateLadder(LadderFromBox.Text, LadderToBox.Text, LadderStepBox.Text, out ladder, out error);
-
         private bool TryParsePracticeRange(out BeatmapEditor.PracticeRange? range, out string rangeSuffix, out string error)
         {
             bool ok = PracticeMath.TryValidatePracticeRange(PracticeStartBox.Text, PracticeEndBox.Text, out var tupleRange, out rangeSuffix, out error);
@@ -172,29 +164,49 @@ namespace osu_trainer_avalonia
             return ok;
         }
 
-        private void SeedPracticeLadderFields()
+        private void OnLadderEnabledClick(object? sender, RoutedEventArgs e)
         {
-            string rateText = editor.BpmRate.ToString("0.00", CultureInfo.InvariantCulture);
-            LadderFromBox.Text = rateText;
-            LadderToBox.Text = rateText;
-            LadderStepBox.Text = "0.05";
-            UpdateLadderCount();
+            bool on = LadderEnabledCheck.IsChecked == true;
+            LadderPresetDown10.IsEnabled = LadderPresetUp10.IsEnabled = LadderPresetAround10.IsEnabled = LadderPresetUp20.IsEnabled = on;
+            LadderStep005.IsEnabled = LadderStep010.IsEnabled = on;
+            UpdateLadderPreview();
         }
 
-        private void UpdateLadderCount()
+        private void OnLadderPresetClick(object? sender, RoutedEventArgs e)
         {
-            bool okFrom = decimal.TryParse(LadderFromBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal from);
-            bool okTo = decimal.TryParse(LadderToBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal to);
-            bool okStep = decimal.TryParse(LadderStepBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal step);
+            if (sender is not ToggleButton clicked) return;
 
-            if (!okFrom || !okTo || !okStep)
+            var siblings = new[] { LadderPresetDown10, LadderPresetUp10, LadderPresetAround10, LadderPresetUp20 };
+            foreach (var button in siblings)
+                button.IsChecked = ReferenceEquals(button, clicked);
+
+            var parts = ((string)clicked.Tag!).Split(',');
+            ladderPreset = (decimal.Parse(parts[0], CultureInfo.InvariantCulture), decimal.Parse(parts[1], CultureInfo.InvariantCulture));
+            UpdateLadderPreview();
+        }
+
+        private void OnLadderStepClick(object? sender, RoutedEventArgs e)
+        {
+            if (sender is not ToggleButton clicked) return;
+
+            var siblings = new[] { LadderStep005, LadderStep010 };
+            foreach (var button in siblings)
+                button.IsChecked = ReferenceEquals(button, clicked);
+
+            ladderStep = decimal.Parse((string)clicked.Tag!, CultureInfo.InvariantCulture);
+            UpdateLadderPreview();
+        }
+
+        private void UpdateLadderPreview()
+        {
+            bool on = LadderEnabledCheck.IsChecked == true;
+            if (!on || editor.State != EditorState.READY)
             {
-                LadderCountText.Text = "—";
+                LadderPreviewText.Text = string.Empty;
                 return;
             }
 
-            var built = PracticeMath.BuildLadder(from, to, step);
-            LadderCountText.Text = built.Count == 0 ? "—" : $"{built.Count} diffs";
+            LadderPreviewText.Text = PracticeMath.FormatLadderPreview(editor.BpmRate, ladderPreset.Below, ladderPreset.Above, ladderStep);
         }
 
         private void OnResetClick(object? sender, RoutedEventArgs e)
@@ -536,6 +548,7 @@ namespace osu_trainer_avalonia
                 StatusText.Text = reason;
                 GenerateButton.IsEnabled = false;
                 HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = false;
+                UpdateLadderPreview();
                 return;
             }
 
@@ -579,6 +592,8 @@ namespace osu_trainer_avalonia
             HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = true;
 
             updatingFromModel = false;
+
+            UpdateLadderPreview();
         }
 
         /// <summary>

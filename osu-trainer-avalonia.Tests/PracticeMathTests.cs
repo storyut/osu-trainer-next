@@ -81,42 +81,86 @@ namespace osu_trainer_avalonia.Tests
             Assert.Equal(expected, PracticeMath.FormatRangeSuffix(startMs, endMs));
         }
 
-        // ---- Rule-12 refusal table: rate ladder rows ----
+        // ---- BuildAnchoredLadder / FormatLadderPreview ----
 
-        [Fact]
-        public void TryValidateLadder_StepZeroOrLess_Refuses()
+        [Theory]
+        [InlineData(1.30, 0.10, 0.10, 0.05, new double[] { 1.20, 1.25, 1.30, 1.35, 1.40 })]
+        [InlineData(1.00, 0.10, 0.0, 0.05, new double[] { 0.90, 0.95, 1.00 })]
+        [InlineData(1.00, 0.0, 0.10, 0.05, new double[] { 1.00, 1.05, 1.10 })]
+        [InlineData(1.00, 0.0, 0.20, 0.05, new double[] { 1.00, 1.05, 1.10, 1.15, 1.20 })]
+        [InlineData(1.00, 0.10, 0.10, 0.10, new double[] { 0.90, 1.00, 1.10 })]
+        [InlineData(1.95, 0.10, 0.10, 0.05, new double[] { 1.85, 1.90, 1.95, 2.00 })]
+        [InlineData(0.52, 0.10, 0.0, 0.05, new double[] { 0.50 })]
+        [InlineData(2.00, 0.0, 0.20, 0.05, new double[] { 2.00 })]
+        [InlineData(0.50, 0.10, 0.10, 0.05, new double[] { 0.50, 0.55, 0.60 })]
+        public void BuildAnchoredLadder_MatchesExpected(double anchor, double below, double above, double step, double[] expected)
         {
-            Assert.False(PracticeMath.TryValidateLadder("0.90", "1.10", "0", out _, out string error));
-            Assert.Equal("Rate ladder: step must be greater than 0.", error);
+            var ladder = PracticeMath.BuildAnchoredLadder((decimal)anchor, (decimal)below, (decimal)above, (decimal)step);
+            var expectedDecimals = new List<decimal>();
+            foreach (var value in expected)
+                expectedDecimals.Add((decimal)value);
+            Assert.Equal(expectedDecimals, ladder);
         }
 
         [Fact]
-        public void TryValidateLadder_FromGreaterThanTo_Refuses()
+        public void BuildAnchoredLadder_AtLowerBound_NeverEmpty()
         {
-            Assert.False(PracticeMath.TryValidateLadder("1.10", "0.90", "0.05", out _, out string error));
-            Assert.Equal("Rate ladder: 'from' must not exceed 'to'.", error);
+            var ladder = PracticeMath.BuildAnchoredLadder(0.5m, 0.10m, 0.10m, 0.05m);
+            Assert.NotEmpty(ladder);
+            Assert.Equal(0.5m, ladder[0]);
         }
 
         [Fact]
-        public void TryValidateLadder_AnyStepOutsideBounds_Refuses()
+        public void BuildAnchoredLadder_AtUpperBound_NeverEmpty()
         {
-            Assert.False(PracticeMath.TryValidateLadder("0.10", "1.10", "0.05", out _, out string error));
-            Assert.Equal("Rate ladder: rates must stay between 0.5x and 2.0x.", error);
+            var ladder = PracticeMath.BuildAnchoredLadder(2.0m, 0.10m, 0.10m, 0.05m);
+            Assert.NotEmpty(ladder);
+            Assert.Equal(2.0m, ladder[ladder.Count - 1]);
+        }
+
+        [Theory]
+        [InlineData(1.30, 0.10, 0.10, 0.05, "5 diffs: 1.20 1.25 1.30 1.35 1.40")]
+        [InlineData(1.00, 0.10, 0.0, 0.05, "3 diffs: 0.90 0.95 1.00")]
+        public void FormatLadderPreview_NormalRendersDiffCountAndRates(double anchor, double below, double above, double step, string expected)
+        {
+            string preview = PracticeMath.FormatLadderPreview((decimal)anchor, (decimal)below, (decimal)above, (decimal)step);
+            Assert.Equal(expected, preview);
         }
 
         [Fact]
-        public void TryValidateLadder_MoreThanTenSteps_Refuses()
+        public void FormatLadderPreview_UpperClamp_AppendsClampNote()
         {
-            Assert.False(PracticeMath.TryValidateLadder("0.50", "2.00", "0.01", out _, out string error));
-            Assert.Equal("Rate ladder: at most 10 diffs at a time.", error);
+            string preview = PracticeMath.FormatLadderPreview(1.95m, 0.10m, 0.10m, 0.05m);
+            Assert.Equal("4 diffs: 1.85 1.90 1.95 2.00 (clamped at 2.00x)", preview);
         }
 
         [Fact]
-        public void TryValidateLadder_ValidInput_Succeeds()
+        public void FormatLadderPreview_LowerClamp_AppendsClampNoteAndSingularDiff()
         {
-            Assert.True(PracticeMath.TryValidateLadder("0.90", "1.10", "0.05", out var ladder, out string error));
-            Assert.Equal(string.Empty, error);
-            Assert.Equal(new List<decimal> { 0.90m, 0.95m, 1.00m, 1.05m, 1.10m }, ladder);
+            string preview = PracticeMath.FormatLadderPreview(0.52m, 0.10m, 0.0m, 0.05m);
+            Assert.Equal("1 diff: 0.50 (clamped at 0.50x)", preview);
+        }
+
+        public static IEnumerable<object[]> ShippedPresetsAndSteps()
+        {
+            (decimal Below, decimal Above)[] presets = new[]
+            {
+                (0.10m, 0m), (0m, 0.10m), (0.10m, 0.10m), (0m, 0.20m)
+            };
+            decimal[] steps = { 0.05m, 0.10m };
+            foreach (var preset in presets)
+                foreach (var step in steps)
+                    for (decimal anchor = 0.5m; anchor <= 2.0m; anchor += 0.05m)
+                        yield return new object[] { anchor, preset.Below, preset.Above, step };
+        }
+
+        [Theory]
+        [MemberData(nameof(ShippedPresetsAndSteps))]
+        public void BuildAnchoredLadder_ShippedPresets_NeverEmptyAndAtMostTen(decimal anchor, decimal below, decimal above, decimal step)
+        {
+            var ladder = PracticeMath.BuildAnchoredLadder(anchor, below, above, step);
+            Assert.NotEmpty(ladder);
+            Assert.True(ladder.Count <= 10);
         }
 
         // ---- Rule-12 refusal table: practice cut rows ----

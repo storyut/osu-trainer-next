@@ -67,54 +67,39 @@ namespace osu_trainer_avalonia.Controls
         public static string FormatRangeSuffix(int startMs, int endMs) =>
             $"{FormatMinSec(startMs)}-{FormatMinSec(endMs)}";
 
-        /// <summary>
-        /// Validates the three rate-ladder text fields against the Spec's rule-12 refusal
-        /// table and, on success, expands them into the ladder. Every failure sets the
-        /// exact refusal message the row calls for.
-        /// </summary>
-        public static bool TryValidateLadder(string? fromText, string? toText, string? stepText, out IReadOnlyList<decimal> ladder, out string error)
+        /// <summary>Builds the ascending ladder from anchor-below to anchor+above by step,
+        /// with both ends clamped into [0.5, 2.0]. Never returns empty for an anchor in range.</summary>
+        public static IReadOnlyList<decimal> BuildAnchoredLadder(decimal anchor, decimal below, decimal above, decimal step)
         {
-            ladder = Array.Empty<decimal>();
-            error = string.Empty;
+            decimal from = Math.Max(0.5m, anchor - below);
+            decimal to = Math.Min(2.0m, anchor + above);
+            return BuildLadder(from, to, step);
+        }
 
-            decimal.TryParse(fromText, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal from);
-            decimal.TryParse(toText, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal to);
-            decimal.TryParse(stepText, NumberStyles.Float, CultureInfo.InvariantCulture, out decimal step);
+        /// <summary>Renders "5 diffs: 1.20 1.25 1.30 1.35 1.40", appending
+        /// " (clamped at 2.00x)" / " (clamped at 0.50x)" when a bound was hit.</summary>
+        public static string FormatLadderPreview(decimal anchor, decimal below, decimal above, decimal step)
+        {
+            decimal requestedFrom = anchor - below;
+            decimal requestedTo = anchor + above;
+            var ladder = BuildAnchoredLadder(anchor, below, above, step);
 
-            if (step <= 0)
-            {
-                error = "Rate ladder: step must be greater than 0.";
-                return false;
-            }
-            if (from > to)
-            {
-                error = "Rate ladder: 'from' must not exceed 'to'.";
-                return false;
-            }
+            string rates = string.Join(" ", ConvertAll(ladder));
+            string label = ladder.Count == 1 ? "1 diff" : $"{ladder.Count} diffs";
+            string preview = $"{label}: {rates}";
 
-            var built = BuildLadder(from, to, step);
-            bool anyOutOfBounds = false;
-            foreach (var rate in built)
-            {
-                if (rate < 0.5m || rate > 2.0m)
-                {
-                    anyOutOfBounds = true;
-                    break;
-                }
-            }
-            if (built.Count == 0 || anyOutOfBounds)
-            {
-                error = "Rate ladder: rates must stay between 0.5x and 2.0x.";
-                return false;
-            }
-            if (built.Count > 10)
-            {
-                error = "Rate ladder: at most 10 diffs at a time.";
-                return false;
-            }
+            if (requestedFrom < 0.5m)
+                preview += " (clamped at 0.50x)";
+            else if (requestedTo > 2.0m)
+                preview += " (clamped at 2.00x)";
 
-            ladder = built;
-            return true;
+            return preview;
+        }
+
+        private static IEnumerable<string> ConvertAll(IReadOnlyList<decimal> rates)
+        {
+            foreach (var rate in rates)
+                yield return rate.ToString("0.00", CultureInfo.InvariantCulture);
         }
 
         /// <summary>
