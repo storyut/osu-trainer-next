@@ -63,8 +63,12 @@ namespace osu_trainer_avalonia
             ApplyPersistedSettingsPreLoad(loadedSettings);
             pendingPersistedSettings = loadedSettings;
 
+            // Deferred to Opened: the check's first HTTPS request drags the whole HTTP + TLS +
+            // JSON stack through the JIT (measured 170-420ms of threadpool CPU), which on this
+            // CPU-bound startup path competes with the UI thread and delays first paint. It is
+            // fire-and-forget either way, so nothing depends on it having started by then.
             if (loadedSettings.UpdatesCheckEnabled)
-                _ = CheckForUpdatesAsync();
+                Opened += StartUpdateCheckOnce;
 
             globalHotKey = new GlobalHotKey();
             globalHotKey.RateNudgeRequested += OnRateNudgeRequested;
@@ -417,6 +421,15 @@ namespace osu_trainer_avalonia
         }
 
         // ---- update checker -------------------------------------------------------
+
+        /// <summary>One-shot: <see cref="Window.Opened"/> fires again on every Show() after the
+        /// ✕ button hides this window to the tray, and the update check should run once per
+        /// process, not once per restore.</summary>
+        private void StartUpdateCheckOnce(object? sender, EventArgs e)
+        {
+            Opened -= StartUpdateCheckOnce;
+            _ = CheckForUpdatesAsync();
+        }
 
         private async Task CheckForUpdatesAsync()
         {
