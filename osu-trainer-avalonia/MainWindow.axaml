@@ -52,12 +52,12 @@
              Rectangle rather than Image for the same reason unit 003 gave: with
              SizeToContent an Image measures at the bitmap's natural size and stretches
              the window. -->
-        <Border Height="86" CornerRadius="{DynamicResource ControlCornerRadius}"
+        <Border Height="124" CornerRadius="{DynamicResource ControlCornerRadius}"
                 ClipToBounds="True" Background="{DynamicResource CardBackground}"
                 BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
           <Grid>
             <Rectangle x:Name="BeatmapCardArt" IsVisible="False"/>
-            <Rectangle VerticalAlignment="Bottom" Height="56">
+            <Rectangle VerticalAlignment="Bottom" Height="76">
               <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0%,100%" EndPoint="0%,0%">
                   <GradientStop Offset="0" Color="#E6000000"/>
@@ -65,23 +65,27 @@
                 </LinearGradientBrush>
               </Rectangle.Fill>
             </Rectangle>
-            <Grid Margin="10,0,10,8" VerticalAlignment="Bottom" ColumnDefinitions="*,Auto">
-              <StackPanel Grid.Column="0" Spacing="1">
+            <Grid Margin="10,0,10,8" VerticalAlignment="Bottom" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+              <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                         x:Name="SongTitle" Text="No beatmap loaded." Foreground="{DynamicResource TextPrimary}"
+                         FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
+                         AutomationProperties.AutomationId="SongTitle">
+                <TextBlock.Effect>
+                  <DropShadowEffect BlurRadius="14" OffsetX="0" OffsetY="3"
+                                    Color="Black" Opacity="1.0"/>
+                </TextBlock.Effect>
+              </TextBlock>
+              <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Spacing="6" Margin="0,1,0,0">
                 <StackPanel.Effect>
-                  <DropShadowEffect BlurRadius="4" OffsetX="0" OffsetY="1"
-                                    Color="Black" Opacity="0.9"/>
+                  <DropShadowEffect BlurRadius="14" OffsetX="0" OffsetY="3"
+                                    Color="Black" Opacity="1.0"/>
                 </StackPanel.Effect>
-                <TextBlock x:Name="SongTitle" Text="No beatmap loaded." Foreground="{DynamicResource TextPrimary}"
-                           FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold" TextTrimming="CharacterEllipsis"
-                           AutomationProperties.AutomationId="SongTitle"/>
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                  <TextBlock x:Name="SongArtist" Text="" Foreground="#D8D8E0" FontSize="{DynamicResource FontSizeCaption}"
-                             TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongArtist"/>
-                  <TextBlock x:Name="SongDifficulty" Text="" Foreground="{DynamicResource AccentPink}" FontSize="{DynamicResource FontSizeCaption}"
-                             TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongDifficulty"/>
-                </StackPanel>
+                <TextBlock x:Name="SongArtist" Text="" Foreground="#D8D8E0" FontSize="{DynamicResource FontSizeCaption}"
+                           FontWeight="Bold" TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongArtist"/>
+                <TextBlock x:Name="SongDifficulty" Text="" Foreground="{DynamicResource AccentPink}" FontSize="{DynamicResource FontSizeCaption}"
+                           FontWeight="Bold" TextTrimming="CharacterEllipsis" AutomationProperties.AutomationId="SongDifficulty"/>
               </StackPanel>
-              <controls:StarRatingDiamond Grid.Column="1" x:Name="StarRatingDiamond" VerticalAlignment="Bottom"
+              <controls:StarRatingDiamond Grid.Row="1" Grid.Column="1" x:Name="StarRatingDiamond" VerticalAlignment="Center"
                                            AutomationProperties.AutomationId="StarRatingDiamond"/>
             </Grid>
           </Grid>
@@ -92,8 +96,8 @@
 
         <!-- 3. Rate card -->
         <Border Background="{DynamicResource CardBackground}" BorderBrush="{DynamicResource CardBorder}"
-                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="12">
-          <StackPanel Spacing="6">
+                BorderThickness="1" CornerRadius="{DynamicResource ControlCornerRadius}" Padding="8">
+          <StackPanel Spacing="4">
             <Slider x:Name="RateSlider" Minimum="0.5" Maximum="2.0" Value="1.0"
                     AutomationProperties.AutomationId="RateSlider"/>
             <!-- Merged rate + BPM readout row -->
