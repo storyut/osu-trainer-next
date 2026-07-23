@@ -328,16 +328,12 @@ namespace osu_trainer_avalonia
         // fields that only matter once a beatmap exists (the four difficulty locks, BPM
         // lock, HR emulation) are applied once, on the first BeatmapSwitched after
         // construction; everything else (rate, Scale AR/OD, pitch/spinners/mp3 toggles) is
-        // safe to apply immediately since those setters tolerate the NOT_READY state.
+        // safe to apply immediately since those setters tolerate the NOT_READY state. The
+        // field mapping and this split live in Services.SettingsSnapshot.
 
         private void ApplyPersistedSettingsPreLoad(AppSettings s)
         {
-            editor.BpmRate = s.BpmRate;
-            editor.SetScaleAR(s.ScaleAR);
-            editor.SetScaleOD(s.ScaleOD);
-            if (s.ChangePitch) editor.ToggleChangePitchSetting();
-            if (s.NoSpinners) editor.ToggleNoSpinners();
-            if (s.HighQualityMp3s) editor.ToggleHighQualityMp3s();
+            SettingsSnapshot.ApplyImmediate(editor, s);
             UpdatesCheck.IsChecked = s.UpdatesCheckEnabled;
 
             // No beatmap is loaded yet, so RefreshControlsFromModel() (which reads
@@ -357,66 +353,12 @@ namespace osu_trainer_avalonia
             pendingPersistedSettings = null;
             editor.BeatmapSwitched -= OnFirstBeatmapSwitchedApplyPersistedSettings;
 
-            // HR emulation and a CS lock are mutually exclusive in BeatmapEditor already
-            // (each Toggle clears the other), so only one branch here ever applies.
-            if (s.ForceHardrockCirclesize)
-            {
-                editor.ToggleHrEmulation();
-            }
-            else if (s.CsIsLocked)
-            {
-                editor.ToggleCsLock();
-                editor.SetCS(s.LockedCs);
-            }
-
-            if (s.HpIsLocked)
-            {
-                editor.ToggleHpLock();
-                editor.SetHP(s.LockedHp);
-            }
-
-            if (s.ArIsLocked)
-            {
-                editor.ToggleArLock();
-                editor.SetAR(s.LockedAr);
-            }
-
-            if (s.OdIsLocked)
-            {
-                editor.ToggleOdLock();
-                editor.SetOD(s.LockedOd);
-            }
-
-            if (s.BpmIsLocked)
-            {
-                editor.ToggleBpmLock();
-                editor.SetBpm(s.LockedBpm);
-            }
+            SettingsSnapshot.ApplyOnReady(editor, s);
         }
 
         private void SaveCurrentSettings()
         {
-            var s = new AppSettings
-            {
-                BpmRate = editor.BpmRate,
-                BpmIsLocked = editor.BpmIsLocked,
-                LockedBpm = editor.BpmIsLocked ? (int)editor.GetNewBpmData().Item1 : 200,
-                HpIsLocked = editor.HpIsLocked,
-                LockedHp = editor.NewBeatmap?.HPDrainRate ?? 0M,
-                CsIsLocked = editor.CsIsLocked,
-                LockedCs = editor.NewBeatmap?.CircleSize ?? 0M,
-                ArIsLocked = editor.ArIsLocked,
-                LockedAr = editor.NewBeatmap?.ApproachRate ?? 0M,
-                OdIsLocked = editor.OdIsLocked,
-                LockedOd = editor.NewBeatmap?.OverallDifficulty ?? 0M,
-                ScaleAR = editor.ScaleAR,
-                ScaleOD = editor.ScaleOD,
-                ForceHardrockCirclesize = editor.ForceHardrockCirclesize,
-                ChangePitch = editor.ChangePitch,
-                NoSpinners = editor.NoSpinners,
-                HighQualityMp3s = editor.HighQualityMp3s,
-                UpdatesCheckEnabled = UpdatesCheck.IsChecked == true
-            };
+            var s = SettingsSnapshot.Capture(editor, UpdatesCheck.IsChecked == true);
             settingsStore.Save(s);
         }
 

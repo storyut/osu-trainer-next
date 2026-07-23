@@ -14,4 +14,10 @@
   <ItemGroup>
     <ProjectReference Include="..\osu-trainer-avalonia\osu-trainer-avalonia.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Fixtures\minimal.osu">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
