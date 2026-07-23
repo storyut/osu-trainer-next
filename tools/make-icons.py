@@ -115,8 +115,7 @@ def main():
         artwork = trim_and_pad(Image.open(raw_png))
 
         ico_path = os.path.join(args.out_dir, "logo.ico")
-        frames = [artwork.resize((s, s), Image.LANCZOS) for s in ICO_SIZES]
-        frames[0].save(ico_path, format="ICO", sizes=[(s, s) for s in ICO_SIZES])
+        artwork.save(ico_path, format="ICO", sizes=[(s, s) for s in ICO_SIZES])
         print(f"wrote {ico_path} ({len(ICO_SIZES)} sizes)")
 
         png_path = os.path.join(args.out_dir, "logo-64.png")
