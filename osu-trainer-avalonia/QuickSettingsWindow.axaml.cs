@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using osu_trainer_avalonia.Controls;
 using osu_trainer_avalonia.Interop;
@@ -18,6 +17,7 @@ namespace osu_trainer_avalonia
     public partial class QuickSettingsWindow : Window
     {
         private readonly BeatmapEditor editor;
+        private readonly DifficultyPanelControls difficultyControls;
         private bool updatingFromModel;
 
         /// <summary>Design-time/previewer only — the app always uses the (BeatmapEditor) constructor.</summary>
@@ -30,20 +30,16 @@ namespace osu_trainer_avalonia
             InitializeComponent();
             this.editor = editor;
 
-            RateSlider.ValueChanged += OnRateChanged;
-            HpRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetHP((decimal)v); };
-            CsRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetCS((decimal)v); };
-            ArRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetAR((decimal)v); };
-            OdRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetOD((decimal)v); };
-            HpRow.LockToggled += (_, _) => editor.ToggleHpLock();
-            CsRow.LockToggled += (_, _) => editor.ToggleCsLock();
-            ArRow.LockToggled += (_, _) => editor.ToggleArLock();
-            OdRow.LockToggled += (_, _) => editor.ToggleOdLock();
+            difficultyControls = new DifficultyPanelControls(HpRow, CsRow, ArRow, OdRow, RateSlider, BpmText);
+            DifficultyPanel.Wire(difficultyControls, editor, () => updatingFromModel);
+
             GenerateButton.Click += (_, _) => editor.GenerateBeatmap();
 
             editor.BeatmapSwitched += (_, _) => RefreshFromModel();
             editor.BeatmapModified += (_, _) => RefreshFromModel();
             editor.ControlsModified += (_, _) => RefreshFromModel();
+            // Re-enables the rows once an export finishes; nothing else raises an event then.
+            editor.StateChanged += (_, _) => RefreshFromModel();
 
             Deactivated += (_, _) => Hide();
             KeyDown += (_, e) => { if (e.Key == Key.Escape) Hide(); };
@@ -71,53 +67,13 @@ namespace osu_trainer_avalonia
             Position = new PixelPoint(x, y);
         }
 
-        private void OnRateChanged(object? sender, RangeBaseValueChangedEventArgs e)
-        {
-            UpdateRateBubble(e.NewValue);
-            if (updatingFromModel) return;
-            editor.SetBpmMultiplier((decimal)e.NewValue);
-        }
-
-        private void UpdateRateBubble(double value)
-        {
-            const double min = 0.5, max = 2.0, trackWidth = 236, bubbleWidth = 48;
-            double fraction = (value - min) / (max - min);
-            double left = fraction * (trackWidth - bubbleWidth);
-            RateBubble.Margin = new Thickness(left, -28, 0, 0);
-            RateBubbleText.Text = $"{value:0.00}x";
-        }
-
         private void RefreshFromModel()
         {
-            if (editor.State != EditorState.READY || editor.NewBeatmap == null)
-            {
-                HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = false;
-                GenerateButton.IsEnabled = false;
-                return;
-            }
+            var state = DifficultyPanel.Project(editor);
 
             updatingFromModel = true;
-
-            RateSlider.Value = (double)editor.BpmRate;
-            UpdateRateBubble((double)editor.BpmRate);
-
-            HpRow.Value = (double)editor.NewBeatmap.HPDrainRate;
-            CsRow.Value = (double)editor.NewBeatmap.CircleSize;
-            ArRow.Value = (double)editor.NewBeatmap.ApproachRate;
-            OdRow.Value = (double)editor.NewBeatmap.OverallDifficulty;
-
-            HpRow.IsLocked = editor.HpIsLocked;
-            CsRow.IsLocked = editor.CsIsLocked;
-            ArRow.IsLocked = editor.ArIsLocked;
-            OdRow.IsLocked = editor.OdIsLocked;
-
-            var (origBpm, _, _) = editor.GetOriginalBpmData();
-            var (newBpm, _, _) = editor.GetNewBpmData();
-            BpmText.Text = DifficultyMath.FormatBpm(origBpm, newBpm);
-
-            HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = true;
-            GenerateButton.IsEnabled = editor.State == EditorState.READY;
-
+            DifficultyPanel.Apply(difficultyControls, state);
+            GenerateButton.IsEnabled = state.Enabled;
             updatingFromModel = false;
         }
     }

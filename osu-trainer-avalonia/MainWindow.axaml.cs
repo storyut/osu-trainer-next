@@ -32,6 +32,7 @@ namespace osu_trainer_avalonia
         private readonly SettingsStore settingsStore;
         private readonly GlobalHotKey globalHotKey;
         private readonly Button[] profileButtons = new Button[4];
+        private readonly DifficultyPanelControls difficultyControls;
         private bool updatingFromModel;
         private AppSettings? pendingPersistedSettings;
         private string? pendingUpdateUrl;
@@ -53,7 +54,9 @@ namespace osu_trainer_avalonia
             editor.StateChanged += (_, _) => RefreshState();
             editor.BeatmapSwitched += OnFirstBeatmapSwitchedApplyPersistedSettings;
 
-            WireDifficultyRows();
+            difficultyControls = new DifficultyPanelControls(HpRow, CsRow, ArRow, OdRow, RateSlider, RateBpmText);
+            DifficultyPanel.Wire(difficultyControls, editor, () => updatingFromModel);
+
             BuildProfileSlots();
 
             RefreshControlsFromModel();
@@ -236,12 +239,6 @@ namespace osu_trainer_avalonia
 
         // ---- rate + BPM -------------------------------------------------------
 
-        private void OnRateChanged(object? sender, RangeBaseValueChangedEventArgs e)
-        {
-            if (updatingFromModel) return;
-            editor.SetBpmMultiplier((decimal)e.NewValue);
-        }
-
         private void OnBpmLockClick(object? sender, RoutedEventArgs e)
         {
             if (updatingFromModel) return;
@@ -258,19 +255,6 @@ namespace osu_trainer_avalonia
         }
 
         // ---- difficulty rows --------------------------------------------------
-
-        private void WireDifficultyRows()
-        {
-            HpRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetHP((decimal)v); };
-            CsRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetCS((decimal)v); };
-            ArRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetAR((decimal)v); };
-            OdRow.ValueCommitted += (_, v) => { if (!updatingFromModel) editor.SetOD((decimal)v); };
-
-            HpRow.LockToggled += (_, _) => editor.ToggleHpLock();
-            CsRow.LockToggled += (_, _) => editor.ToggleCsLock();
-            ArRow.LockToggled += (_, _) => editor.ToggleArLock();
-            OdRow.LockToggled += (_, _) => editor.ToggleOdLock();
-        }
 
         private void OnScaleArClick(object? sender, RoutedEventArgs e)
         {
@@ -482,10 +466,25 @@ namespace osu_trainer_avalonia
 
         private bool CanClickGenerate => editor.State == EditorState.READY || batchCts != null;
 
-        private void RefreshState() => GenerateButton.IsEnabled = CanClickGenerate;
+        /// <summary>
+        /// The StateChanged path. Deliberately *not* RefreshControlsFromModel(): that rewrites
+        /// StatusText to "Loaded." and would clobber the live "Generating n/n" progress line.
+        /// It still re-applies the panel, so rows greyed when an export starts come back when
+        /// it finishes.
+        /// </summary>
+        private void RefreshState()
+        {
+            GenerateButton.IsEnabled = CanClickGenerate;
+
+            updatingFromModel = true;
+            DifficultyPanel.Apply(difficultyControls, DifficultyPanel.Project(editor));
+            updatingFromModel = false;
+        }
 
         private void RefreshControlsFromModel()
         {
+            var panelState = DifficultyPanel.Project(editor);
+
             if (editor.State == EditorState.NOT_READY || editor.NewBeatmap == null)
             {
                 string reason = editor.NotReadyReason switch
@@ -497,37 +496,25 @@ namespace osu_trainer_avalonia
                 SongTitle.Text = reason;
                 SongArtist.Text = string.Empty;
                 SongDifficulty.Text = string.Empty;
-                // Without this the readout keeps showing the previous map's BPM line.
-                RateBpmText.Text = "—";
+                // Apply() resets the readout to "—"; without it the previous map's BPM line stays.
+                DifficultyPanel.Apply(difficultyControls, panelState);
                 BpmRangeText.Text = string.Empty;
                 StatusText.Text = reason;
                 GenerateButton.IsEnabled = false;
-                HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = false;
+                HrCsCheck.IsEnabled = false;
                 UpdateLadderPreview();
                 return;
             }
 
             updatingFromModel = true;
 
-            RateSlider.Value = (double)editor.BpmRate;
-
-            HpRow.Value = (double)editor.NewBeatmap.HPDrainRate;
-            CsRow.Value = (double)editor.NewBeatmap.CircleSize;
-            ArRow.Value = (double)editor.NewBeatmap.ApproachRate;
-            OdRow.Value = (double)editor.NewBeatmap.OverallDifficulty;
-
-            HpRow.IsLocked = editor.HpIsLocked;
-            CsRow.IsLocked = editor.CsIsLocked;
-            ArRow.IsLocked = editor.ArIsLocked;
-            OdRow.IsLocked = editor.OdIsLocked;
+            DifficultyPanel.Apply(difficultyControls, panelState);
 
             ScaleArCheck.IsChecked = editor.ScaleAR;
             ScaleOdCheck.IsChecked = editor.ScaleOD;
             HrCsCheck.IsChecked = editor.ForceHardrockCirclesize;
 
-            var (origBpm, _, _) = editor.GetOriginalBpmData();
-            var (newBpm, newMin, newMax) = editor.GetNewBpmData();
-            RateBpmText.Text = DifficultyMath.FormatRateBpmLine(editor.BpmRate, origBpm, newBpm);
+            var (_, newMin, newMax) = editor.GetNewBpmData();
             BpmRangeText.Text = DifficultyMath.FormatBpmRange(newMin, newMax);
             BpmLockButton.IsChecked = editor.BpmIsLocked;
 
@@ -544,7 +531,7 @@ namespace osu_trainer_avalonia
             StatusText.Text = "Loaded.";
 
             GenerateButton.IsEnabled = CanClickGenerate;
-            HpRow.IsEnabled = CsRow.IsEnabled = ArRow.IsEnabled = OdRow.IsEnabled = HrCsCheck.IsEnabled = true;
+            HrCsCheck.IsEnabled = true;
 
             updatingFromModel = false;
 

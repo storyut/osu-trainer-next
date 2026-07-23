@@ -28,6 +28,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="osu-trainer-avalonia.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets/Fonts/Quicksand-Variable.ttf" />
     <AvaloniaResource Include="..\osu-trainer\resources\oof.ico">
       <Link>Assets/oof.ico</Link>
