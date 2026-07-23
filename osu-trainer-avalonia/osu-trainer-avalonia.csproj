@@ -6,11 +6,18 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>0.1.0</Version>
     <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
-    <!-- Startup is JIT-bound: publishing without R2R measured ~1850ms to first window on a
-         dev machine, with R2R ~950ms. This is a no-op unless `dotnet publish` is given a
-         RuntimeIdentifier, so plain `dotnet build` output and paths are unaffected — see
-         .fable/MAP.md's Build section for the publish command that actually engages it. -->
+    <!-- Startup pays two opposite costs: JIT (every launch) and cold page-in (first launch
+         after boot). R2R fixes the former; single-file shrinks the page-in cost somewhat by
+         cutting the file count. PublishTrimmed was tried in unit 016 and reverted: it measurably
+         strips Avalonia's reflection-based automation-peer tree (UI Automation found 0 elements
+         in the trimmed build vs. 81 in an untrimmed one), and the app's actual on-screen
+         correctness couldn't be independently re-verified that session — see unit 016's work file
+         Outcome and LESSONS before re-enabling it. All of these are no-ops unless `dotnet publish`
+         is given a RuntimeIdentifier, so plain `dotnet build` output and paths are unaffected —
+         see .fable/MAP.md's Build section for the publish command that actually engages them. -->
     <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>

@@ -191,7 +191,9 @@ namespace OsuTrainerCore
                 File.Delete(outputOsz);
             try
             {
-                ZipFile.CreateFromDirectory(songFolder, outputOsz);
+                // NoCompression: song folders hold mp3/jpg/mp4, already compressed. Deflating them
+                // was measured at 26-47x slower for ~7% smaller output on real libraries (unit 016).
+                ZipFile.CreateFromDirectory(songFolder, outputOsz, CompressionLevel.NoCompression, includeBaseDirectory: false);
             }
             catch (Exception e)
             {
@@ -202,9 +204,9 @@ namespace OsuTrainerCore
             {
                 foreach (var artifact in artifacts)
                 {
-                    archive.CreateEntryFromFile(artifact.OsuPath, Path.GetFileName(artifact.OsuPath));
+                    archive.CreateEntryFromFile(artifact.OsuPath, Path.GetFileName(artifact.OsuPath), CompressionLevel.NoCompression);
                     if (artifact.Mp3Path != null)
-                        archive.CreateEntryFromFile(artifact.Mp3Path, Path.GetFileName(artifact.Mp3Path));
+                        archive.CreateEntryFromFile(artifact.Mp3Path, Path.GetFileName(artifact.Mp3Path), CompressionLevel.NoCompression);
                 }
             }
             // 3. Run the .osz
