@@ -19,5 +19,10 @@
     <None Include="Fixtures\minimal.osu">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- 0-byte, hand-created: BuildArtifact's "audio already exists" branch only probes for
+         presence, and nothing on that path decodes it. No third-party audio in this repo. -->
+    <None Include="Fixtures\audio.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
