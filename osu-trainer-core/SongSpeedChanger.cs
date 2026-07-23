@@ -14,9 +14,9 @@ namespace OsuTrainerCore
             decimal DTCompensatedMultiplier = effectiveMultiplier / 1.5M;
 
             string ext = Path.GetExtension(inFile);
-            string temp1 = Path.Combine(Guid.NewGuid().ToString() + ext); // audio copy
-            string temp2 = Path.Combine(Guid.NewGuid().ToString() + ".wav"); // decoded wav
-            string temp3 = Path.Combine(Guid.NewGuid().ToString() + ".wav"); // stretched file
+            string temp1 = ToolPaths.NewTempFile(ext); // audio copy
+            string temp2 = ToolPaths.NewTempFile(".wav"); // decoded wav
+            string temp3 = ToolPaths.NewTempFile(".wav"); // stretched file
 
             File.Copy(inFile, temp1);
 
@@ -50,7 +50,7 @@ namespace OsuTrainerCore
             string pitch = changePitch ? $"-pitch={semitones}" : "";
 
             Process soundstretch = new Process();
-            soundstretch.StartInfo.FileName = Path.Combine("binaries", "soundstretch.exe");
+            soundstretch.StartInfo.FileName = ToolPaths.Soundstretch;
             soundstretch.StartInfo.Arguments = $"\"{temp2}\" \"{temp3}\" {quick} {naa} {tempo} {pitch}";
             Console.WriteLine(soundstretch.StartInfo.Arguments);
             soundstretch.StartInfo.UseShellExecute = false;
