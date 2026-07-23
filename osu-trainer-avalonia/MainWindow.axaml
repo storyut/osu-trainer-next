@@ -1,7 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="using:osu_trainer_avalonia.Controls"
-        xmlns:lucideAvalonia="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
         x:Class="osu_trainer_avalonia.MainWindow"
         Title="osu! trainer next"
         Icon="/Assets/logo.ico"
@@ -20,12 +19,12 @@
           <Button Grid.Column="2" x:Name="MinimizeButton" Click="OnMinimizeClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
                   Padding="10,2" MinHeight="0" AutomationProperties.AutomationId="MinimizeButton">
-            <lucideAvalonia:Lucide Icon="Minus" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+            <controls:AppIcon Kind="Minus" Size="14" Stroke="{DynamicResource TextPrimary}"/>
           </Button>
           <Button Grid.Column="3" x:Name="CloseButton" Click="OnCloseClick"
                   Background="Transparent" Foreground="{DynamicResource TextPrimary}"
                   Padding="10,2" MinHeight="0" AutomationProperties.AutomationId="CloseButton">
-            <lucideAvalonia:Lucide Icon="X" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+            <controls:AppIcon Kind="X" Size="14" Stroke="{DynamicResource TextPrimary}"/>
           </Button>
         </Grid>
       </Border>
@@ -44,7 +43,7 @@
           </Button>
           <Button Grid.Column="1" Click="OnDismissUpdateRowClick" Background="Transparent"
                   Padding="6,4" MinHeight="0" AutomationProperties.AutomationId="DismissUpdateRowButton">
-            <lucideAvalonia:Lucide Icon="X" Width="12" Height="12" StrokeBrush="{DynamicResource TextPrimary}"/>
+            <controls:AppIcon Kind="X" Size="12" Stroke="{DynamicResource TextPrimary}"/>
           </Button>
         </Grid>
 
@@ -111,7 +110,7 @@
                             Background="Transparent" BorderBrush="{DynamicResource CardBorder}"
                             Padding="8,3" MinHeight="0" AutomationProperties.AutomationId="BpmLockButton">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                  <lucideAvalonia:Lucide Icon="Lock" Width="12" Height="12" StrokeBrush="{DynamicResource TextPrimary}"/>
+                  <controls:AppIcon Kind="Lock" Size="12" Stroke="{DynamicResource TextPrimary}"/>
                   <TextBlock Text="BPM" Foreground="{DynamicResource TextPrimary}"/>
                 </StackPanel>
               </ToggleButton>
@@ -160,7 +159,7 @@
                   BorderBrush="{DynamicResource CardBorder}"
                   AutomationProperties.AutomationId="MoreButton">
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <lucideAvalonia:Lucide x:Name="MoreButtonIcon" Icon="ChevronRight" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+              <controls:AppIcon x:Name="MoreButtonIcon" Kind="ChevronRight" Size="14" Stroke="{DynamicResource TextPrimary}"/>
               <TextBlock x:Name="MoreButtonText" Text="More" Foreground="{DynamicResource TextPrimary}"/>
             </StackPanel>
           </Button>
@@ -173,7 +172,7 @@
                   BorderBrush="{DynamicResource CardBorder}"
                   AutomationProperties.AutomationId="ResetButton">
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <lucideAvalonia:Lucide Icon="RotateCcw" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+              <controls:AppIcon Kind="RotateCcw" Size="14" Stroke="{DynamicResource TextPrimary}"/>
               <TextBlock Text="Reset" Foreground="{DynamicResource TextPrimary}"/>
             </StackPanel>
           </Button>
@@ -185,7 +184,7 @@
                   BorderBrush="{DynamicResource CardBorder}"
                   AutomationProperties.AutomationId="SongsFolderButton">
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <lucideAvalonia:Lucide Icon="Folder" Width="14" Height="14" StrokeBrush="{DynamicResource TextPrimary}"/>
+              <controls:AppIcon Kind="Folder" Size="14" Stroke="{DynamicResource TextPrimary}"/>
               <TextBlock Text="Songs Folder" Foreground="{DynamicResource TextPrimary}"/>
             </StackPanel>
           </Button>

@@ -26,3 +26,4 @@ This project uses the following projects:
 - [oppai-ng](https://github.com/Francesco149/oppai-ng), [licensed under the Unlicense](https://github.com/Francesco149/oppai-ng/blob/master/UNLICENSE)
 - [ProcessMemoryDataFinder](https://github.com/Piotrekol/ProcessMemoryDataFinder), [licensed under GPL-3.0](https://github.com/Piotrekol/ProcessMemoryDataFinder/blob/master/LICENSE)
 - [LAME](https://lame.sourceforge.io/)
+- [Lucide](https://lucide.dev/), [licensed under the ISC License](https://github.com/lucide-icons/lucide/blob/main/LICENSE) — icon vector data only (`Controls/AppIcon`), no NuGet dependency

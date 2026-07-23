@@ -9,6 +9,11 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- AppIconTests constructs real AppIcon/Path/Geometry instances (Geometry.Parse needs a
+         platform render interface even just to validate path data) — headless Avalonia gives
+         that without a visible window. -->
+    <PackageReference Include="Avalonia.Headless" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.2.3" />
   </ItemGroup>
 
   <ItemGroup>

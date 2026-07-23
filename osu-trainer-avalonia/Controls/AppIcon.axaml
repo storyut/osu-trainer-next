@@ -1,0 +1,7 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="osu_trainer_avalonia.Controls.AppIcon">
+  <Viewbox Stretch="Uniform">
+    <Path x:Name="IconPath" x:FieldModifier="internal" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"/>
+  </Viewbox>
+</UserControl>

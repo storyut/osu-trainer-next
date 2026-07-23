@@ -16,8 +16,6 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using LucideAvalonia;
-using LucideAvalonia.Enum;
 using osu_trainer_avalonia.Controls;
 using osu_trainer_avalonia.Interop;
 using osu_trainer_avalonia.Services;
@@ -283,7 +281,7 @@ namespace osu_trainer_avalonia
             // The extras expand sideways: the left column keeps its designed 376px width and
             // the window grows to make room, rather than the stack growing taller.
             Width = show ? 720 : 400;
-            MoreButtonIcon.Icon = show ? LucideIconNames.ChevronDown : LucideIconNames.ChevronRight;
+            MoreButtonIcon.Kind = show ? AppIconKind.ChevronDown : AppIconKind.ChevronRight;
             MoreButtonText.Text = show ? "Less" : "More";
         }
 
@@ -440,12 +438,11 @@ namespace osu_trainer_avalonia
 
                 var menuButton = new Button
                 {
-                    Content = new Lucide
+                    Content = new AppIcon
                     {
-                        Icon = LucideIconNames.ChevronDown,
-                        Width = 12,
-                        Height = 12,
-                        StrokeBrush = Brushes.White
+                        Kind = AppIconKind.ChevronDown,
+                        Size = 12,
+                        Stroke = Brushes.White
                     },
                     Padding = new Thickness(2, 3),
                     MinHeight = 0,

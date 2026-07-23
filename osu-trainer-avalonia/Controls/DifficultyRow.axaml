@@ -1,6 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lucideAvalonia="clr-namespace:LucideAvalonia;assembly=LucideAvalonia"
+             xmlns:controls="using:osu_trainer_avalonia.Controls"
              x:Class="osu_trainer_avalonia.Controls.DifficultyRow">
   <Grid ColumnDefinitions="24,Auto,*,Auto,Auto" VerticalAlignment="Center">
     <TextBlock x:Name="LabelText" Grid.Column="0" Text="AR" Margin="0,0,2,0"
@@ -16,7 +16,7 @@
                   Padding="6,2" MinHeight="0" Background="Transparent"
                   BorderBrush="{DynamicResource CardBorder}"
                   ToolTip.Tip="Lock this value across map switches">
-      <lucideAvalonia:Lucide Icon="Lock" Width="12" Height="12" StrokeBrush="{DynamicResource TextPrimary}"/>
+      <controls:AppIcon Kind="Lock" Size="12" Stroke="{DynamicResource TextPrimary}"/>
     </ToggleButton>
     <ContentPresenter x:Name="TrailingHost" Grid.Column="4" Margin="8,0,0,0"
                       VerticalAlignment="Center" Content="{Binding TrailingContent, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
