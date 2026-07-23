@@ -37,7 +37,7 @@ namespace osu_trainer_avalonia.Services
             try
             {
                 var json = File.ReadAllText(path);
-                return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                return JsonSerializer.Deserialize(json, AppSettingsJsonContext.Default.AppSettings) ?? new AppSettings();
             }
             catch (Exception e)
             {
@@ -53,7 +53,7 @@ namespace osu_trainer_avalonia.Services
                 var dir = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(dir))
                     Directory.CreateDirectory(dir);
-                File.WriteAllText(path, JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true }));
+                File.WriteAllText(path, JsonSerializer.Serialize(settings, AppSettingsJsonContext.Default.AppSettings));
             }
             catch (Exception e)
             {
