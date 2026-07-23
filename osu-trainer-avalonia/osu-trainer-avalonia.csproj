@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Version>0.1.0</Version>
+    <ApplicationIcon>Assets\logo.ico</ApplicationIcon>
     <!-- Startup is JIT-bound: publishing without R2R measured ~1850ms to first window on a
          dev machine, with R2R ~950ms. This is a no-op unless `dotnet publish` is given a
          RuntimeIdentifier, so plain `dotnet build` output and paths are unaffected — see
@@ -33,9 +34,10 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets/Fonts/Quicksand-Variable.ttf" />
-    <AvaloniaResource Include="..\osu-trainer\resources\oof.ico">
-      <Link>Assets/oof.ico</Link>
-    </AvaloniaResource>
+    <!-- Generated from Assets/logo.svg by tools/make-icons.py and committed; the svg itself is
+         repo source, not a build input, so it stays undeclared. -->
+    <AvaloniaResource Include="Assets/logo.ico" />
+    <AvaloniaResource Include="Assets/logo-64.png" />
   </ItemGroup>
 
   <ItemGroup>

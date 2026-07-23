@@ -24,5 +24,10 @@
     <None Include="Fixtures\audio.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- IconAssetTests reads the committed ICO's frame table byte by byte. -->
+    <None Include="..\osu-trainer-avalonia\Assets\logo.ico">
+      <Link>Assets\logo.ico</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

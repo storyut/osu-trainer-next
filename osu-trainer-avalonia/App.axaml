@@ -6,7 +6,7 @@
 
     <TrayIcon.Icons>
         <TrayIcons>
-            <TrayIcon Icon="/Assets/oof.ico" ToolTipText="osu!trainer"
+            <TrayIcon Icon="/Assets/logo.ico" ToolTipText="osu! trainer next"
                       Clicked="OnTrayIconClicked">
                 <TrayIcon.Menu>
                     <NativeMenu>
