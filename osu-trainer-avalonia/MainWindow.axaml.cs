@@ -41,6 +41,9 @@ namespace osu_trainer_avalonia
         /// <summary>Shared with <see cref="QuickSettingsWindow"/> so both windows drive the same model.</summary>
         public BeatmapEditor Editor => editor;
 
+        /// <summary>Report target for <see cref="Services.CrashGuard"/> — a recovered crash surfaces here.</summary>
+        public void ReportCrash(string message) => StatusText.Text = message;
+
         public MainWindow()
         {
             InitializeComponent();

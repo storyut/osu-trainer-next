@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using osu_trainer_avalonia.Services;
 
 namespace osu_trainer_avalonia;
 
@@ -24,6 +25,10 @@ public partial class App : Application
             // OnLastWindowClose shutdown mode would otherwise exit the process the moment
             // that happens.
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            // Installed before MainWindow exists so a fault in its constructor is caught too;
+            // the report action reads the field lazily, so it tolerates mainWindow still being null.
+            CrashGuard.Install(msg => mainWindow?.ReportCrash(msg));
 
             mainWindow = new MainWindow();
             desktop.MainWindow = mainWindow;
