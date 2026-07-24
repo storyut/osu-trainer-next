@@ -1,58 +1,54 @@
 # osu-trainer-next
 
-Rescale any osu! beatmap — speed, AR, CS, OD, HP — and get a playable copy in a couple of seconds.
+A fork of [FunOrange/osu-trainer](https://github.com/FunOrange/osu-trainer) with the UI rebuilt to
+look like it belongs to osu!, plus a few practice tools the original doesn't have.
 
-A fork of [FunOrange/osu-trainer](https://github.com/FunOrange/osu-trainer) with the UI rebuilt in
-Avalonia to match osu!lazer, plus practice tools the original didn't have. The difficulty math and
-`.osu` generation are upstream's, unchanged.
+The tool itself works the way it always has. This page only covers what's different.
 
-> **Status:** in development on the `redesign-avalonia` branch. No release has been published yet —
-> build from source for now.
+> **Status:** in development on the `redesign-avalonia` branch. No release published yet — build
+> from source.
 
-## What it does
+## The redesign
 
-Pick a map in osu!. The app follows along and shows it. Move the sliders, hit Generate, and the new
-version lands in your library.
+The original is WinForms, and looks it. This is a ground-up rebuild in
+[Avalonia](https://avaloniaui.net/) following osu!lazer's design language: near-black surfaces, the
+`#ff66aa` accent, rounded floating cards, pill toggles, hover glows. The beatmap's artwork anchors
+the window in a single top card behind a gradient scrim, with the star-rating diamond recalculating
+as you drag the rate.
 
-**Difficulty**
-- Rate from 0.5× to 2.0×, pitch preserved (or not — your call)
-- AR, CS, OD, HP, all snapping to clean 0.1 steps
-- Star rating recalculates live as you drag
-- Scale AR and OD with rate automatically, so a 1.4× map still reads the way you expect
-- HR circle-size emulation (CS ×1.3)
+The point is that it stops feeling like a control panel sitting next to the game.
 
-**Practice**
-- **Practice cut** — trim a diff to a time range and drill just the part you keep failing
-- **Rate ladder** — generate a spread of rates in one batch, e.g. `now → +0.10` in 0.05 steps, for
-  working your way up to a speed
-- **Profiles** — save a set of settings and reapply it to any map in one click
+## What's new
 
-**Getting out of your way**
-- Tray icon with a quick-settings flyout — rate and difficulty without opening the main window
-- `Ctrl+Alt+Up` / `Ctrl+Alt+Down` nudge the rate from anywhere, including mid-game
-- No file paths to type. It reads whatever you have selected in osu!
+**Practice cut** — trim a diff to a time range and drill only the part you keep failing, instead of
+replaying two minutes of intro to reach it.
 
-Options for no-spinner conversions, pitch shifting, and high-quality MP3 encoding live under
-**More**.
+**Rate ladder** — generate a spread of rates as one batch rather than one map at a time. Presets are
+anchored to wherever the slider currently sits (`now → +0.10`, `±0.10 around`, and so on) at a 0.05
+or 0.10 step, so working up to a speed is one click instead of eight.
 
-## How it interacts with osu!
+**Tray quick-settings** — a flyout from the tray icon with the rate and difficulty rows, sharing
+state with the main window. Adjust and generate without bringing the full window up.
 
-Worth being precise about, since "third-party osu! tool" covers a lot of ground:
+**Settings that survive a restart** — rate, locks, and every toggle persist to disk. Upstream keeps
+these in memory only, so they reset every launch.
 
-- **Reads** osu!'s process memory, read-only, to detect which map you have selected — the same
-  approach [StreamCompanion](https://github.com/Piotrekol/StreamCompanion) and
-  [gosumemory](https://github.com/l3lackShark/gosumemory) use.
-- **Never writes** to the osu! process. No DLL injection, no hooking, no code patching.
-- **Never sends input** to the game. Nothing is automated on your behalf.
-- **Generates ordinary local maps.** They're unsubmitted, so scores on them aren't ranked and don't
-  touch pp — same as upstream osu!trainer has always worked.
+**Sliders that land on exact values** — difficulty and rate snap to 0.1 steps and are rounded on
+commit. Upstream's continuous sliders emit 0.01-granularity values, which is why maps import as
+"AR ~8" instead of AR 8.
 
-It changes what you practice on. It does not change how you play.
+Runs on .NET 8 rather than .NET Framework 4.7.1.
+
+## Not ported yet
+
+- **Edit Hotkeys** — the rate-nudge hotkeys work (`Ctrl+Alt+Up` / `Ctrl+Alt+Down`), but they aren't
+  rebindable in this UI yet. Upstream's hotkey editor has no equivalent here.
+- **Clean Up** — upstream's button for deleting generated MP3s. Delete generated maps from within
+  osu! for now.
 
 ## Building
 
-Requires the [.NET 8 SDK](https://dotnet.microsoft.com/download) and Windows — the tool depends on
-reading the osu! process, so it's Windows-only in practice even though Avalonia is cross-platform.
+Requires the [.NET 8 SDK](https://dotnet.microsoft.com/download) and Windows.
 
 ```
 git clone --recursive https://github.com/storyut/osu-trainer-next.git
@@ -63,15 +59,8 @@ dotnet run --project osu-trainer-avalonia
 
 Tests: `dotnet test osu-trainer-avalonia.Tests`
 
-The repo also still contains the original WinForms app under `osu-trainer/`. It builds, but it's
-the old UI and isn't where development happens.
-
-## Notes
-
-- Search `osutrainer` in osu! to find everything you've generated.
-- Generated maps each carry their own MP3, so a few hundred of them adds up to gigabytes. Delete
-  them from within osu! when you're done. (Upstream's "Clean Up" button hasn't been ported to the
-  new UI yet.)
+The original WinForms app is still in the tree under `osu-trainer/`. It builds, but development
+happens in `osu-trainer-avalonia/`.
 
 ## Credits
 
