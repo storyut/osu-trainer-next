@@ -81,7 +81,11 @@ namespace osu_trainer_avalonia.Controls
             c.Ar.LockToggled += (_, _) => editor.ToggleArLock();
             c.Od.LockToggled += (_, _) => editor.ToggleOdLock();
 
-            c.Rate.ValueChanged += (_, e) => { if (!isRefreshing()) editor.SetBpmMultiplier((decimal)e.NewValue); };
+            // Rate moves in 0.1 steps too — snap the thumb and round the committed value so a
+            // drag never lands on a 0.01 fraction.
+            c.Rate.TickFrequency = 0.1;
+            c.Rate.IsSnapToTickEnabled = true;
+            c.Rate.ValueChanged += (_, e) => { if (!isRefreshing()) editor.SetBpmMultiplier(Math.Round((decimal)e.NewValue, 1)); };
         }
 
         /// <summary>

@@ -80,6 +80,10 @@ namespace osu_trainer_avalonia.Controls
             LabelText.Text = Label;
             ValueSlider.Minimum = Minimum;
             ValueSlider.Maximum = Maximum;
+            // Difficulty values move in 0.1 steps — snap the thumb so a drag can never land on
+            // a 0.01 fraction (which would export to osu! as "AR ~8" instead of AR 8).
+            ValueSlider.TickFrequency = 0.1;
+            ValueSlider.IsSnapToTickEnabled = true;
             ValueSlider.Value = Value;
             ValueBox.Text = DifficultyMath.FormatDifficulty(Value);
             LockButton.IsChecked = IsLocked;
@@ -117,11 +121,15 @@ namespace osu_trainer_avalonia.Controls
         private void OnSliderChanged(object? sender, RangeBaseValueChangedEventArgs e)
         {
             if (suppress) return;
+            // Snapping keeps the thumb on 0.1 ticks, but round anyway so the committed value is
+            // a clean single-decimal number rather than 8.000000000000002 from tick math.
+            double v = Math.Round(e.NewValue, 1);
             suppress = true;
-            Value = e.NewValue;
-            ValueBox.Text = DifficultyMath.FormatDifficulty(e.NewValue);
+            Value = v;
+            ValueSlider.Value = v;
+            ValueBox.Text = DifficultyMath.FormatDifficulty(v);
             suppress = false;
-            ValueCommitted?.Invoke(this, e.NewValue);
+            ValueCommitted?.Invoke(this, v);
         }
 
         private void OnBoxKeyDown(object? sender, KeyEventArgs e)
@@ -145,6 +153,7 @@ namespace osu_trainer_avalonia.Controls
             suppress = true;
             if (parsed is double d)
             {
+                d = Math.Round(d, 1);
                 Value = d;
                 ValueSlider.Value = d;
                 ValueBox.Text = DifficultyMath.FormatDifficulty(d);

@@ -251,7 +251,7 @@ namespace osu_trainer_avalonia
         /// Drives the slider so it goes through the exact same path a mouse drag does.</summary>
         private void OnRateNudgeRequested(bool increase)
         {
-            decimal delta = increase ? 0.05M : -0.05M;
+            decimal delta = increase ? 0.1M : -0.1M;
             decimal newRate = Math.Clamp(editor.BpmRate + delta, 0.5M, 2.0M);
             RateSlider.Value = (double)newRate;
         }
