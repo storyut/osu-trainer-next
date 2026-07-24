@@ -201,3 +201,12 @@ FakesAssemblies/
 .claude/
 .codegraph/
 .serena/
+CLAUDE.md
+brainstorm/
+
+# Visual Studio local editor state (was committed by mistake)
+.vs/
+
+# Stale upstream scratch files, kept on disk but out of the tree
+todo.txt
+qN4Kxkl.png
