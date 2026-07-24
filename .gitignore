@@ -196,6 +196,8 @@ FakesAssemblies/
 # Visual Studio 6 workspace options file
 *.opt
 
-# fablely
-.fable/.session-start
-.fable/.intent
+# Local agent/workflow state — kept on disk, never published.
+.fable/
+.claude/
+.codegraph/
+.serena/
