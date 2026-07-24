@@ -30,6 +30,7 @@ namespace osu_trainer_avalonia
         private readonly SettingsStore settingsStore;
         private readonly GlobalHotKey globalHotKey;
         private readonly Button[] profileButtons = new Button[4];
+        private readonly Button[] profileMenuButtons = new Button[4];
         private readonly DifficultyPanelControls difficultyControls;
         private bool updatingFromModel;
         private AppSettings? pendingPersistedSettings;
@@ -450,6 +451,7 @@ namespace osu_trainer_avalonia
                     Flyout = flyout
                 };
                 menuButton.SetValue(AutomationProperties.AutomationIdProperty, $"ProfileMenu{idx}");
+                profileMenuButtons[idx] = menuButton;
 
                 ProfilesPanel.Children.Add(new StackPanel
                 {
@@ -499,6 +501,8 @@ namespace osu_trainer_avalonia
                 StatusText.Text = reason;
                 GenerateButton.IsEnabled = false;
                 HrCsCheck.IsEnabled = false;
+                foreach (var b in profileButtons) b.IsEnabled = false;
+                foreach (var b in profileMenuButtons) b.IsEnabled = false;
                 UpdateLadderPreview();
                 return;
             }
@@ -529,6 +533,8 @@ namespace osu_trainer_avalonia
 
             GenerateButton.IsEnabled = CanClickGenerate;
             HrCsCheck.IsEnabled = true;
+            foreach (var b in profileButtons) b.IsEnabled = true;
+            foreach (var b in profileMenuButtons) b.IsEnabled = true;
 
             updatingFromModel = false;
 
