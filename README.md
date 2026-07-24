@@ -11,12 +11,7 @@ The tool itself works the way it always has. This page only covers what's differ
 ## The redesign
 
 The original is WinForms, and looks it. This is a ground-up rebuild in
-[Avalonia](https://avaloniaui.net/) following osu!lazer's design language: near-black surfaces, the
-`#ff66aa` accent, rounded floating cards, pill toggles, hover glows. The beatmap's artwork anchors
-the window in a single top card behind a gradient scrim, with the star-rating diamond recalculating
-as you drag the rate.
-
-The point is that it stops feeling like a control panel sitting next to the game.
+[Avalonia](https://avaloniaui.net/) following osu!lazer's design language.
 
 ## What's new
 
@@ -32,10 +27,6 @@ state with the main window. Adjust and generate without bringing the full window
 
 **Settings that survive a restart** — rate, locks, and every toggle persist to disk. Upstream keeps
 these in memory only, so they reset every launch.
-
-**Sliders that land on exact values** — difficulty and rate snap to 0.1 steps and are rounded on
-commit. Upstream's continuous sliders emit 0.01-granularity values, which is why maps import as
-"AR ~8" instead of AR 8.
 
 Runs on .NET 8 rather than .NET Framework 4.7.1.
 
