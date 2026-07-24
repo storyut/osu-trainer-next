@@ -1,7 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="osu_trainer_avalonia.Controls.AppIcon">
+  <!-- The Canvas is load-bearing, not decoration. Lucide draws every glyph on a fixed 24x24
+       grid and only centres and weights them consistently relative to *that* box, not to
+       their own ink. Handing the Path straight to the Viewbox stretches each icon's tight
+       geometry bounds instead, so every glyph gets its own scale and offset: Minus
+       ("M5,12 L19,12") has zero-height bounds while X is 12x12, which rendered them at
+       visibly different stroke weights, each pushed off-centre. Fixing the Canvas at 24x24
+       makes the Viewbox scale the grid, so the glyphs land exactly where Lucide put them.
+       The Path keeps Avalonia's default Stretch=None so it draws at absolute grid
+       coordinates rather than being re-fitted to its own bounds. -->
   <Viewbox Stretch="Uniform">
-    <Path x:Name="IconPath" x:FieldModifier="internal" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"/>
+    <Canvas Width="24" Height="24">
+      <Path x:Name="IconPath" x:FieldModifier="internal" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"/>
+    </Canvas>
   </Viewbox>
 </UserControl>
