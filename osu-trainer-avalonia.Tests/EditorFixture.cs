@@ -28,5 +28,7 @@ namespace osu_trainer_avalonia.Tests
             editor.BeatmapSwitched -= onSwitched;
             return editor;
         }
+
+        public static BeatmapEditor NewEmptyEditor() => new BeatmapEditor(new StubCoreHost());
     }
 }

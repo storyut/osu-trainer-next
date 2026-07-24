@@ -623,7 +623,9 @@ namespace OsuTrainerCore
 
         public void SetBpmMultiplier(decimal multiplier)
         {
-            if (BpmIsLocked)
+            // Not a State != READY guard: this must keep applying during
+            // GENERATING_BEATMAP, which it does today (PRJ-1).
+            if (BpmIsLocked && OriginalBeatmap != null)
             {
                 int bpm = (int)(OriginalBeatmap.Bpm * multiplier);
                 lockedBpm = bpm;
@@ -714,12 +716,15 @@ namespace OsuTrainerCore
             return OriginalBeatmap?.Mode;
         }
 
-        public decimal GetScaledAR() => DifficultyCalculator.CalculateMultipliedAR(OriginalBeatmap, BpmRate);
+        public decimal GetScaledAR() => OriginalBeatmap == null ? 0M : DifficultyCalculator.CalculateMultipliedAR(OriginalBeatmap, BpmRate);
 
-        public decimal GetScaledOD() => DifficultyCalculator.CalculateMultipliedOD(OriginalBeatmap, BpmRate);
+        public decimal GetScaledOD() => OriginalBeatmap == null ? 0M : DifficultyCalculator.CalculateMultipliedOD(OriginalBeatmap, BpmRate);
 
         public bool NewMapIsDifferent()
         {
+            if (NewBeatmap == null || OriginalBeatmap == null)
+                return false;
+
             return (
                 NewBeatmap.HPDrainRate != OriginalBeatmap.HPDrainRate ||
                 NewBeatmap.CircleSize != OriginalBeatmap.CircleSize ||
@@ -880,6 +885,10 @@ namespace OsuTrainerCore
         }
         public void SaveProfile(int whichProfile)
         {
+            // Mutates the loaded map; also blocks saving mid-export.
+            if (State != EditorState.READY)
+                return;
+
             int i = whichProfile;
             UserProfiles[i].HpIsLocked = HpIsLocked;
             UserProfiles[i].CsIsLocked = CsIsLocked;
@@ -938,6 +947,10 @@ namespace OsuTrainerCore
         }
         public void LoadProfile(int whichProfile)
         {
+            // Mutates the loaded map; also blocks loading mid-export.
+            if (State != EditorState.READY)
+                return;
+
             int i = whichProfile;
 
             // locked settings:
