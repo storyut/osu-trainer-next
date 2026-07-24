@@ -1,6 +1,3 @@
-[submodule "osu-trainer/submodules/FsBeatmapParser"]
-	path = osu-trainer/submodules/FsBeatmapParser
-	url = https://github.com/FunOrange/FsBeatmapParser.git
 [submodule "osu-trainer/submodules/ProcessMemoryDataFinder"]
 	path = osu-trainer/submodules/ProcessMemoryDataFinder
 	url = https://github.com/Piotrekol/ProcessMemoryDataFinder.git
